@@ -14,8 +14,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        iframe, img {
-            width: 100% !important;
+        iframe {
+            max-width: 100% !important;
+            max-height: 30vh !important;
+        }
+        img {
+            width: auto !important;
             height: 30vh !important;
         }
     }
