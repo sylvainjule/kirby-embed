@@ -1,0 +1,32 @@
+@import '_variables.scss';
+
+.k-input[data-theme="field"][data-type="oembed"] {
+
+}
+
+.preview {
+    position: relative;
+    margin-bottom: 0.5rem;
+    &-content {
+        padding: 1rem;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        iframe, img {
+            width: 100% !important;
+            height: 30vh !important;
+        }
+    }
+    &-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        background: $color-light url($pattern);
+        opacity: 0.45;
+    }
+}
