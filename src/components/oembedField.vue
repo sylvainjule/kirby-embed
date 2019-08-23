@@ -10,7 +10,7 @@
             <k-button v-if="link"
                       slot="icon"
                       :icon="icon"
-                      :link="value"
+                      :link="inputValue"
                       :tooltip="$t('open')"
                       class="k-input-icon-button"
                       tabindex="-1"
