@@ -2,7 +2,7 @@
     <k-field :input="_uid" v-bind="$props" class="k-oembed-field k-url-field k-field">
 
         <div class="preview" v-if="hasMedia">
-            <div class="preview-content" v-html="media.html"></div>
+            <div class="preview-content" v-html="media.code"></div>
             <div class="preview-background"></div>
         </div>
 

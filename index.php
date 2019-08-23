@@ -13,18 +13,53 @@ Kirby::plugin('sylvainjule/oembed', [
                     'pattern' => 'kirby-oembed/get-data',
                     'action' => function() {
                         $response = [];
+                        $url = get('url');
 
-                        try {
-                            $url = get('url');
-                            $essence = new Essence\Essence();
-                            $data = $essence->extract($url);
-
-                            $response['status'] = 'success';
-                            $response['data']   = $data;
-                        }
-                        catch (Exception $e) {
+                        if(!V::url($url)) {
                             $response['status'] = 'error';
-                            $response['error']  = $e->getMessage();
+                            $response['error']  = 'The $url variable is not an url';
+                        }
+                        else {
+                            try {
+                                $dispatcher = new Embed\Http\CurlDispatcher();
+                                $options = \Embed\Embed::$default_config;
+                                $options['min_image_width'] = 60;
+                                $options['min_image_height'] = 60;
+                                $options['html']['max_images'] = 10;
+                                $options['html']['external_images'] = false;
+
+                                $media = Embed\Embed::create($url, $options, $dispatcher);
+
+                                $response['status'] = 'success';
+                                $response['data']   = array(
+                                    'title'         => $media->title,
+                                    'description'   => $media->description,
+                                    'url'           => $media->url,
+                                    'type'          => $media->type,
+                                    'tags'          => $media->tags,
+                                    'image'         => $media->image,
+                                    'imageWidth'    => $media->imageWidth,
+                                    'imageHeight'   => $media->imageHeight,
+                                    'images'        => $media->images,
+                                    'code'          => $media->code,
+                                    'feeds'         => $media->feeds,
+                                    'width'         => $media->width,
+                                    'height'        => $media->height,
+                                    'aspectRatio'   => $media->aspectRatio,
+                                    'authorName'    => $media->authorName,
+                                    'authorUrl'     => $media->authorUrl,
+                                    'providerIcon'  => $media->providerIcon,
+                                    'providerIcons' => $media->providerIcons,
+                                    'providerName'  => $media->providerName,
+                                    'providerUrl'   => $media->providerUrl,
+                                    'publishedTime' => $media->publishedTime,
+                                    'license'       => $media->license,
+                                );
+                            }
+                            catch (Exception $e) {
+                                $response['status'] = 'error';
+                                $response['error']  = $e->getMessage();
+                            }
                         }
 
                         return $response;

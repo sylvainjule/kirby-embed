@@ -11,7 +11,7 @@
     ],
     "require": {
         "getkirby/composer-installer": "^1.1",
-        "essence/essence": "^3.5"
+        "embed/embed": "^3.4"
     },
     "extra": {
         "installer-name": "imageradio"

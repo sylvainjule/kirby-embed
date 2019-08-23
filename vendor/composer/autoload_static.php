@@ -7,42 +7,32 @@ namespace Composer\Autoload;
 class ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf
 {
     public static $prefixLengthsPsr4 = array (
-        'P' => 
-        array (
-            'Parkour\\' => 8,
-        ),
         'K' => 
         array (
             'Kirby\\' => 6,
         ),
         'E' => 
         array (
-            'Essence\\Http\\' => 13,
-            'Essence\\Dom\\' => 12,
-            'Essence\\' => 8,
+            'Embed\\' => 6,
+        ),
+        'C' => 
+        array (
+            'Composer\\CaBundle\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Parkour\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/fg/parkour/lib',
-        ),
         'Kirby\\' => 
         array (
             0 => __DIR__ . '/..' . '/getkirby/composer-installer/src',
         ),
-        'Essence\\Http\\' => 
+        'Embed\\' => 
         array (
-            0 => __DIR__ . '/..' . '/essence/http/src',
+            0 => __DIR__ . '/..' . '/embed/embed/src',
         ),
-        'Essence\\Dom\\' => 
+        'Composer\\CaBundle\\' => 
         array (
-            0 => __DIR__ . '/..' . '/essence/dom/src',
-        ),
-        'Essence\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/essence/essence/lib/Essence',
+            0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
         ),
     );
 

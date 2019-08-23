@@ -13,13 +13,19 @@ export default {
                         this.media = {}
                     }
 
-                    this.$emit("input", {
-                        input: value,
-                        media: this.media
-                    });
-                    this.$emit("setMedia", this.media);
+                    this.emitInput(value)
                 })
-                .catch(error => {})
+                .catch(error => {
+                    this.media = {}
+                    this.emitInput(value)
+                })
+        },
+        emitInput(value) {
+            this.$emit("input", {
+                input: value,
+                media: this.media
+            });
+            this.$emit("setMedia", this.media)
         }
     }
 };

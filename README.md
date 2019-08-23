@@ -22,4 +22,4 @@ MIT
 
 ## 3. Credits
 
-Built on top of [Essence](http://essence.github.io/essence/)
+Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed)
