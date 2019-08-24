@@ -1,11 +1,23 @@
 <?php
 
+use Kirby\Cms\Content;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 Kirby::plugin('sylvainjule/oembed', [
 	'fields' => array(
 		'oembed' => require_once __DIR__ . '/lib/oembed.php',
 	),
+    'fieldMethods' => array(
+        'toEmbed' => function($field) {
+            // allows if($embed = $page->myfield()->toEmbed()) { echo $embed->code() }
+            if($field->isEmpty() || !count(Yaml::decode($field->value)) || empty($field->yaml()['media'])) {
+                return null;
+            }
+            $content = new Content($field->yaml()['media'], $field->parent());
+            return $content;
+        },
+    ),
     'api' => array(
         'routes' => function ($kirby) {
             return [
