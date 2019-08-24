@@ -30,7 +30,7 @@ export default {
         }
     },
     created() {
-        if(this.value.media && this.hasLength(this.value.media)) {
+        if(this.value && this.value.media && this.hasLength(this.value.media)) {
             this.media = this.value.media
         }
     },
@@ -39,7 +39,7 @@ export default {
             return this.hasLength(this.media)
         },
         inputValue() {
-            return this.value.input
+            return this.value && this.value.input ? this.value.input : ''
         }
     },
     methods: {

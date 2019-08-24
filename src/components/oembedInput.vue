@@ -26,6 +26,7 @@ export default {
                 media: this.media
             });
             this.$emit("setMedia", this.media)
+            this.$forceUpdate()
         }
     }
 };
