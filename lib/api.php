@@ -17,10 +17,10 @@ return array(
                         try {
                             $dispatcher = new Embed\Http\CurlDispatcher();
                             $options = \Embed\Embed::$default_config;
-                            $options['min_image_width'] = 60;
-                            $options['min_image_height'] = 60;
-                            $options['html']['max_images'] = 10;
-                            $options['html']['external_images'] = false;
+                            $options['min_image_width']         = option('sylvainjule.embed.min_image_width');
+                            $options['min_image_height']        = option('sylvainjule.embed.min_image_height');
+                            $options['html']['max_images']      = option('sylvainjule.embed.max_images');
+                            $options['html']['external_images'] = option('sylvainjule.embed.external_images');
 
                             $media = Embed\Embed::create($url, $options, $dispatcher);
 

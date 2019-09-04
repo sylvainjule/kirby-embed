@@ -11,9 +11,10 @@ Embed field for Kirby 3. Display embeds from various media sites (Youtube, Vimeo
 - [1. Installation](#1-installation)
 - [2. Blueprint usage](#2-blueprint-usage)
 - [3. Front-end usage](#3-front-end-usage)
-- [4. To-do](#4-to-do)
-- [5. License](#5-license)
-- [6. Credits](#6-credits)
+- [4. Front-end usage](#4-front-end-usage)
+- [5. To-do](#5-to-do)
+- [6. License](#6-license)
+- [7. Credits](#7-credits)
 
 ## 1. Installation
 
@@ -36,7 +37,19 @@ fields:
 
 <br/>
 
-## 3. Front-end usage
+## 3.Options
+
+```php
+// site/config/config.php
+return array(
+    'sylvainjule.embed.min_image_width'  => 60, // Minimal image width used to choose the main image
+    'sylvainjule.embed.min_image_height' => 60, // Minimal image height used to choose the main image
+);
+```
+
+<br/>
+
+## 4. Front-end usage
 
 The plugin provides a `->toEmbed()` methods, which is useful to get all the structured data fetched given by the provider.
 
@@ -83,10 +96,10 @@ $info->feeds();         // The RSS/Atom feeds
 
 <br/>
 
-## 4. To-do
+## 5. To-do
 
 - [ ] Add an option to restrict the provider type (ex. `provider: youtube`)
-- [ ] Add `min_image_width`, `min_image_height`, `max_images` and `external_images` as options.
+- [X] Add `min_image_width` and `min_image_height` as options.
 - [ ] Add the url validator back to prevent making a call on every input
 - [ ] Check all useful default field options
 - [ ] Fix previews for:
@@ -95,13 +108,13 @@ $info->feeds();         // The RSS/Atom feeds
 
 <br/>
 
-## 5. License
+## 6. License
 
 MIT
 
 <br/>
 
-## 6. Credits
+## 7. Credits
 
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed)
 
