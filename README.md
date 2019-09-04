@@ -12,9 +12,8 @@ Embed field for Kirby 3. Display embeds from various media sites (Youtube, Vimeo
 - [2. Blueprint usage](#2-blueprint-usage)
 - [3. Front-end usage](#3-front-end-usage)
 - [4. Front-end usage](#4-front-end-usage)
-- [5. To-do](#5-to-do)
-- [6. License](#6-license)
-- [7. Credits](#7-credits)
+- [5. License](#5-license)
+- [6. Credits](#6-credits)
 
 ## 1. Installation
 
@@ -43,7 +42,7 @@ embed:
   provider: youtube
 ```
 
-
+The field also has all the `url` field's options, except those which wouldn't make much sense for such a plugin (`default` for example), won't fetch anything in the backstage.
 
 <br/>
 
@@ -106,25 +105,13 @@ $info->feeds();         // The RSS/Atom feeds
 
 <br/>
 
-## 5. To-do
-
-- [X] Add an option to restrict the provider type (ex. `provider: youtube`)
-- [X] Add `min_image_width` and `min_image_height` as options.
-- [X] Add the url validator back to prevent making a call on every input
-- [ ] Check all useful default field options
-- [ ] Fix previews for:
-    - [ ] Twitter
-    - [ ] Instagram
-
-<br/>
-
-## 6. License
+## 5. License
 
 MIT
 
 <br/>
 
-## 7. Credits
+## 6. Credits
 
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
