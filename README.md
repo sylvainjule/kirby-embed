@@ -89,6 +89,9 @@ $info->feeds();         // The RSS/Atom feeds
 - [ ] Add `min_image_width`, `min_image_height`, `max_images` and `external_images` as options.
 - [ ] Add the url validator back to prevent making a call on every input
 - [ ] Check all useful default field options
+- [ ] Fix previews for:
+    - [ ] Twitter
+    - [ ] Instagram
 
 <br/>
 
