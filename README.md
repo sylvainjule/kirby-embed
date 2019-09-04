@@ -35,6 +35,16 @@ fields:
     type: embed
 ```
 
+You can optionally limit the allowed provider to one within this list : `youtube`, `vimeo`, `flickr`, `instagram`, `twitter`, `soundcloud`. If any other link is pasted, the field won't request the embed.
+
+```yaml
+embed:
+  type: embed
+  provider: youtube
+```
+
+
+
 <br/>
 
 ## 3. Options
@@ -98,7 +108,7 @@ $info->feeds();         // The RSS/Atom feeds
 
 ## 5. To-do
 
-- [ ] Add an option to restrict the provider type (ex. `provider: youtube`)
+- [X] Add an option to restrict the provider type (ex. `provider: youtube`)
 - [X] Add `min_image_width` and `min_image_height` as options.
 - [X] Add the url validator back to prevent making a call on every input
 - [ ] Check all useful default field options

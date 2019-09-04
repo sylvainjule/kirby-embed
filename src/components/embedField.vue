@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { isUrl } from '../helpers/isUrl.js'
+import { isUrl, matchProvider } from '../helpers/validators.js'
 
 export default {
     extends: 'k-url-field',
@@ -38,6 +38,9 @@ export default {
             media: Object,
             loading: false,
         }
+    },
+    props: {
+        provider: String,
     },
     created() {
         if(this.value && this.value.media && this.hasLength(this.value.media)) {
@@ -49,7 +52,7 @@ export default {
             return this.hasLength(this.media) && this.media.code
         },
         syncFailed() {
-            return this.inputValue != '' && isUrl(this.inputValue) && !this.hasMedia
+            return this.inputValue != '' && this.isValidUrl(this.inputValue) && !this.hasMedia
         },
         inputValue() {
             return this.value && this.value.input ? this.value.input : ''
@@ -69,6 +72,11 @@ export default {
         stopLoading() {
             this.loading = false
         },
+        isValidUrl(value) {
+            if(!isUrl(value)) return false
+            if(this.provider && !matchProvider(value, this.provider)) return false
+            return true
+        }
     }
 };
 </script>
