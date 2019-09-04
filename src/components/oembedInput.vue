@@ -3,6 +3,7 @@ export default {
     extends: 'k-url-input',
     methods: {
         onInput(value) {
+            this.$emit('startLoading')
             this.$api
                 .get('kirby-oembed/get-data', { url: value })
                 .then(response => {
@@ -27,7 +28,7 @@ export default {
             });
             this.$emit("setMedia", this.media)
             this.$forceUpdate()
-        }
+        },
     }
 };
 </script>

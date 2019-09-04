@@ -1,7 +1,93 @@
 @import '_variables.scss';
 
 .k-input[data-theme="field"][data-type="oembed"] {
-
+    .k-input-icon {
+        width: auto;
+        .k-embed-infos {
+            display: flex;
+            align-items: center;
+            line-height: 1;
+            .k-embed-status {
+                margin-right: 3px;
+                &-loading {
+                    display: inline-block;
+                    .loader {
+                        display: inline-block;
+                        overflow: hidden;
+                        height: 1.3em;
+                        margin-top: -0.3em;
+                        line-height: 1.5em;
+                        font-size: 1rem;
+                        vertical-align: text-bottom;
+                        &::after {
+                            content: "⠋\A⠙\A⠹\A⠸\A⠼\A⠴\A⠦\A⠧\A⠇\A⠏";
+                            display: inline-table;
+                            white-space: pre;
+                            text-align: left;
+                            animation: spin10 0.8s steps(10) infinite;
+                        }
+                    }
+                    @keyframes spin10 { to { transform: translateY(-15.0em); } }
+                }
+                &-synced, &-failed {
+                    font-size: 0.8rem;
+                    padding: 3px 5px 3px 6px;
+                    display: inline-block;
+                    border-radius: 3px;
+                }
+                &-synced {
+                    background: rgba(#a7bd6a, .8);
+                    display: flex;
+                    align-items: center;
+                    .checkmark {
+                        position: relative;
+                        width: 20px;
+                        height: 20px;
+                        &:before {
+                            content: "";
+                            position: absolute;
+                            top: 5px;
+                            left: 7px;
+                            width: 9px;
+                            height: 6px;
+                            transform: rotate(-45deg);
+                            background: none;
+                            border: solid black;
+                            border-width: 0 0 1px 1px;
+                        }
+                    }
+                }
+                &-failed {
+                    background: #ffced3;
+                    display: flex;
+                    align-items: center;
+                    .cross {
+                        position: relative;
+                        width: 20px;
+                        height: 20px;
+                        &:before, &:after {
+                            content: "";
+                            position: absolute;
+                            left: 11px;
+                            top: 5px;
+                            height: 10px;
+                            width: 1px;
+                            background-color: black;
+                        }
+                        &:before {
+                            transform: rotate(45deg);
+                        }
+                        &:after {
+                            transform: rotate(-45deg);
+                        }
+                    }
+                }
+            }
+        }
+        &-button {
+            width: 2.5em;
+        }
+    }
 }
 
 .preview {
