@@ -6,6 +6,9 @@ export default {
     props: {
         provider: String,
     },
+    created() {
+        this.loadEmbedScripts()
+    },
     methods: {
         onInput(value) {
             if(!this.isValidUrl(value)) {
@@ -35,7 +38,28 @@ export default {
         emitInput(value) {
             this.$emit("input", { input: value, media: this.media });
             this.$emit("setMedia", this.media)
-            this.$forceUpdate()
+
+            this.loadEmbedScripts()
+        },
+        loadEmbedScripts() {
+            if (window.twttr) {
+                window.twttr.widgets.load();
+            }
+            else if (this.media && Object.keys(this.media).length && this.media.providerName.toLowerCase() == 'twitter') {
+                const embed = document.createElement('script');
+                      embed.src = 'https://platform.twitter.com/widgets.js';
+                      document.body.appendChild(embed);
+            }
+
+            if (window.instgrm) {
+                window.instgrm.Embeds.process();
+            }
+            else if (this.media && Object.keys(this.media).length && this.media.providerName.toLowerCase() == 'instagram') {
+                const embed = document.createElement('script');
+                      embed.src = 'https://www.instagram.com/embed.js';
+                      document.body.appendChild(embed);
+            }
+
         },
         isValidUrl(value) {
             if(!isUrl(value)) return false
