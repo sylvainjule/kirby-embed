@@ -1,6 +1,7 @@
 # Kirby Embed
 
 Embed field for Kirby 3. Display embeds from various media sites (Youtube, Vimeo, Souncloud, Instagram, etc.) by only providing the url to the medium.
+Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 ![embed-screenshot](https://user-images.githubusercontent.com/14079751/64260995-163b3380-cf2c-11e9-85dc-77f0b8a79a1f.jpg)
 
@@ -33,6 +34,8 @@ fields:
     label: Embed
     type: embed
 ```
+
+You have access to all providers supported by [oscarotero/Embed](https://github.com/oscarotero/Embed). Please note that I won't include any provider unsupported by this library.
 
 You can optionally limit the allowed provider to one within this list : `youtube`, `vimeo`, `flickr`, `instagram`, `twitter`, `soundcloud`. If any other link is pasted, the field won't request the embed.
 
