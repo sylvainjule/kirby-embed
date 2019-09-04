@@ -9,8 +9,11 @@ Embed field for Kirby 3. Display embeds from various media sites (Youtube, Vimeo
 > This plugin is completely free and published under the MIT license. However, if you are using it in a commercial project and want to help me keep up with maintenance, please consider [making a donation of your choice](https://www.paypal.me/sylvainjule) or purchasing your license(s) through [my affiliate link](https://a.paddle.com/v2/click/1129/36369?link=1170).
 
 - [1. Installation](#1-installation)
-- [2. License](#2-license)
-- [3. Credits](#3-credits)
+- [2. Blueprint usage](#2-blueprint-usage)
+- [3. Front-end usage](#3-front-end-usage)
+- [4. To-do](#4-to-do)
+- [5. License](#5-license)
+- [6. Credits](#6-credits)
 
 ## 1. Installation
 
@@ -20,11 +23,82 @@ Alternatively, you can install it with composer: ```composer require sylvainjule
 
 <br/>
 
-## 2. License
+## 2. Blueprint usage
+
+The plugin provides a `embed` field that you can include in any blueprint:
+
+```yaml
+fields:
+  embed:
+    label: Embed
+    type: embed
+```
+
+<br/>
+
+## 3. Front-end usage
+
+The plugin provides a `->toEmbed()` methods, which is useful to get all the structured data fetched given by the provider.
+
+It also allows you to make sure your embed is successfully synced before trying to access its data:
+
+```php
+if($embed = $page->myfield()->toEmbed()) {
+    echo $embed->code()
+}
+```
+
+Once you have access to the structured embed, here are the options you will have access (or won't, depending on the provider).
+
+```php
+$embed->title();        // The page title
+$embed->description();  // The page description
+$embed->url();          // The canonical url
+$embed->type();         // The page type (link, video, image, rich)
+$embed->tags();         // The page keywords (tags)
+
+$info->images();        // List of all images found in the page
+$info->image();         // The image choosen as main image
+$info->imageWidth();    // The width of the main image
+$info->imageHeight();   // The height of the main image
+
+$info->code();          // The code to embed the image, video, etc
+$info->width();         // The width of the embed code
+$info->height();        // The height of the embed code
+$info->aspectRatio();   // The aspect ratio (width / height)
+
+$info->authorName();    // The resource author
+$info->authorUrl();     // The author url
+
+$info->providerName();  // The provider name of the page (Youtube, Twitter, Instagram, etc)
+$info->providerUrl();   // The provider url
+$info->providerIcons(); // All provider icons found in the page
+$info->providerIcon();  // The icon choosen as main icon
+
+$info->publishedDate(); // The published date of the resource
+$info->license();       // The license url of the resource
+$info->linkedData();    // The linked-data info (http://json-ld.org/)
+$info->feeds();         // The RSS/Atom feeds
+```
+
+<br/>
+
+## 4. To-do
+
+- [ ] Add an option to restrict the provider type (ex. `provider: youtube`)
+- [ ] Add `min_image_width`, `min_image_height`, `max_images` and `external_images` as options.
+- [ ] Add the url validator back to prevent making a call on every input
+- [ ] Check all useful default field options
+
+<br/>
+
+## 5. License
 
 MIT
 
-## 3. Credits
+<br/>
+
+## 6. Credits
 
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed)
 
