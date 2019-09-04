@@ -48,7 +48,7 @@ if($embed = $page->myfield()->toEmbed()) {
 }
 ```
 
-Once you have access to the structured embed, here are the options you will have access (or won't, depending on the provider).
+Once you have access to the structured embed, here are the options you will have access to (or won't, depending on the provider).
 
 ```php
 $embed->title();        // The page title
