@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { isUrl } from '../helpers/isUrl.js'
+
 export default {
     extends: 'k-url-field',
     data() {
@@ -44,10 +46,10 @@ export default {
     },
     computed: {
         hasMedia() {
-            return this.hasLength(this.media)
+            return this.hasLength(this.media) && this.media.code
         },
         syncFailed() {
-            return this.inputValue != '' && !this.hasMedia
+            return this.inputValue != '' && isUrl(this.inputValue) && !this.hasMedia
         },
         inputValue() {
             return this.value && this.value.input ? this.value.input : ''
@@ -66,7 +68,7 @@ export default {
         },
         stopLoading() {
             this.loading = false
-        }
+        },
     }
 };
 </script>

@@ -37,7 +37,7 @@ fields:
 
 <br/>
 
-## 3.Options
+## 3. Options
 
 ```php
 // site/config/config.php
@@ -100,7 +100,7 @@ $info->feeds();         // The RSS/Atom feeds
 
 - [ ] Add an option to restrict the provider type (ex. `provider: youtube`)
 - [X] Add `min_image_width` and `min_image_height` as options.
-- [ ] Add the url validator back to prevent making a call on every input
+- [X] Add the url validator back to prevent making a call on every input
 - [ ] Check all useful default field options
 - [ ] Fix previews for:
     - [ ] Twitter
@@ -116,6 +116,8 @@ MIT
 
 ## 7. Credits
 
-Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed)
+Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
+
+With the help of [@tristantbg](https://github.com/tristantbg). 👨‍💻
 
 Kirby 2 field by [@distantnative](https://github.com/distantnative/embed), from which I've copy-pasted some bits of this readme. 👀
