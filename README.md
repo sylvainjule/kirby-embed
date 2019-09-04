@@ -1,4 +1,4 @@
-# Kirby Oembed
+# Kirby Embed
 
 Embed field for Kirby 3. Display embeds from various media sites (Youtube, Vimeo, Souncloud, Instagram, etc.) by only providing the url to the medium.
 

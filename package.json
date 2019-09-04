@@ -1,7 +1,7 @@
 {
-  "name": "kirby-oembed",
+  "name": "kirby-embed",
   "version": "0.0.1",
-  "description": "Oembed parser for Kirby 3",
+  "description": "Embed field for Kirby 3",
   "main": "index.js",
   "author": "Sylvain Julé",
   "license": "MIT",

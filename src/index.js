@@ -1,11 +1,11 @@
-import oembedField from './components/oembedField.vue'
-import oembedInput from './components/oembedInput.vue'
+import embedField from './components/embedField.vue'
+import embedInput from './components/embedInput.vue'
 
-panel.plugin('sylvainjule/oembed', {
+panel.plugin('sylvainjule/embed', {
     fields: {
-        oembed: oembedField,
+        embed: embedField,
     },
     components: {
-        'k-oembed-input': oembedInput,
+        'k-embed-input': embedInput,
     }
 });

@@ -1,6 +1,6 @@
 {
-    "name": "sylvainjule/imageradio",
-    "description": "Add illustrations to Kirby's radio buttons",
+    "name": "sylvainjule/embed",
+    "description": "Embed field for Kirby 3",
     "type": "kirby-plugin",
     "license": "MIT",
     "authors": [

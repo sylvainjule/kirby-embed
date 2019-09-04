@@ -5,7 +5,7 @@ export default {
         onInput(value) {
             this.$emit('startLoading')
             this.$api
-                .get('kirby-oembed/get-data', { url: value })
+                .get('kirby-embed/get-data', { url: value })
                 .then(response => {
                     if(response['status'] == 'success' && response['data']) {
                         this.media = response['data']
