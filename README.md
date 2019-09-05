@@ -63,9 +63,9 @@ return array(
 
 ## 4. Front-end usage
 
-The plugin provides a `->toEmbed()` methods, which is useful to get all the structured data fetched given by the provider.
+The plugin provides a `->toEmbed()` method, which is useful to get all the stored data of the embed (its html code, and a few other informations detailed below).
 
-It also allows you to make sure your embed is successfully synced before trying to access its data:
+It also allows you to make sure your embed is successfully synced before trying to access the data:
 
 ```php
 if($embed = $page->myfield()->toEmbed()) {
@@ -73,7 +73,9 @@ if($embed = $page->myfield()->toEmbed()) {
 }
 ```
 
-Once you have access to the structured embed, here are the options you will have access to (or won't, depending on the provider).
+Once you have access to the structured embed, here are the options you will have access to as if they were fields.
+
+This comes handy because depending on the provider, some informations might be empty. You can therefore check them with the usual Kirby field methods, like  `$embed->license()->isEmpty()`.
 
 ```php
 $embed->title();        // The page title
