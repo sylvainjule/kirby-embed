@@ -11,7 +11,7 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 - [1. Installation](#1-installation)
 - [2. Blueprint usage](#2-blueprint-usage)
-- [3. Front-end usage](#3-front-end-usage)
+- [3. Options](#3-options)
 - [4. Front-end usage](#4-front-end-usage)
 - [5. License](#5-license)
 - [6. Credits](#6-credits)
