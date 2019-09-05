@@ -13,6 +13,7 @@ return array(
                 $yaml = Yaml::decode($this->value);
                 return count($yaml) ? $yaml : $this->value;
             },
-        )
+        ),
+        'validations' => null
     )
 );
