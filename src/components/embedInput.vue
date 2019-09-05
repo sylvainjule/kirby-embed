@@ -5,8 +5,9 @@ export default {
     extends: 'k-url-input',
     props: {
         provider: String,
+        media: Object,
     },
-    created() {
+    mounted() {
         this.loadEmbedScripts()
     },
     methods: {
@@ -59,7 +60,6 @@ export default {
                       embed.src = 'https://www.instagram.com/embed.js';
                       document.body.appendChild(embed);
             }
-
         },
         isValidUrl(value) {
             if(!isUrl(value)) return false

@@ -6,7 +6,7 @@
             <div class="preview-background"></div>
         </div>
 
-        <k-input ref="input" :id="_uid" v-bind="$props" :value="inputValue" theme="field" v-on="$listeners" @setMedia="setMedia" @startLoading="startLoading">
+        <k-input ref="input" :id="_uid" v-bind="$props" :value="inputValue" :media="media" theme="field" v-on="$listeners" @setMedia="setMedia" @startLoading="startLoading">
             <div class="k-embed-infos" slot="icon">
                 <div class="k-embed-status">
                     <span v-if="loading" class="k-embed-status-loading"><span class="loader"></span></span>
