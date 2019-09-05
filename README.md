@@ -73,9 +73,7 @@ if($embed = $page->myfield()->toEmbed()) {
 }
 ```
 
-Once you have access to the structured embed, here are the options you will have access to as if they were fields.
-
-This comes handy because depending on the provider, some informations might be empty. You can therefore check them with the usual Kirby field methods, like  `$embed->license()->isEmpty()`.
+Once you have access to the structured embed, here are the options you will have access to as if they were fields (this comes handy because depending on the provider, some informations might be empty. You can therefore check them with the usual Kirby field methods, like  `$embed->license()->isEmpty()`).
 
 ```php
 $embed->title();        // The page title
