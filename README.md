@@ -18,9 +18,9 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 ## 1. Installation
 
-Download and copy this repository to ```/site/plugins/kirby-oembed```
+Download and copy this repository to ```/site/plugins/kirby-embed```
 
-Alternatively, you can install it with composer: ```composer require sylvainjule/kirby-oembed```
+Alternatively, you can install it with composer: ```composer require sylvainjule/kirby-embed```
 
 <br/>
 
