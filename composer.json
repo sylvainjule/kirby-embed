@@ -14,7 +14,7 @@
         "embed/embed": "^3.4"
     },
     "extra": {
-        "installer-name": "imageradio"
+        "installer-name": "embed"
     },
     "minimum-stability": "beta"
 }
