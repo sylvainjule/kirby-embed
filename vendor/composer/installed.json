@@ -1,17 +1,17 @@
 [
     {
         "name": "composer/ca-bundle",
-        "version": "1.2.3",
-        "version_normalized": "1.2.3.0",
+        "version": "1.2.9",
+        "version_normalized": "1.2.9.0",
         "source": {
             "type": "git",
             "url": "https://github.com/composer/ca-bundle.git",
-            "reference": "f26a67e397be0e5c00d7c52ec7b5010098e15ce5"
+            "reference": "78a0e288fdcebf92aa2318a8d3656168da6ac1a5"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/composer/ca-bundle/zipball/f26a67e397be0e5c00d7c52ec7b5010098e15ce5",
-            "reference": "f26a67e397be0e5c00d7c52ec7b5010098e15ce5",
+            "url": "https://api.github.com/repos/composer/ca-bundle/zipball/78a0e288fdcebf92aa2318a8d3656168da6ac1a5",
+            "reference": "78a0e288fdcebf92aa2318a8d3656168da6ac1a5",
             "shasum": ""
         },
         "require": {
@@ -20,15 +20,16 @@
             "php": "^5.3.2 || ^7.0 || ^8.0"
         },
         "require-dev": {
-            "phpunit/phpunit": "^4.8.35 || ^5.7 || 6.5 - 8",
+            "phpstan/phpstan": "^0.12.55",
             "psr/log": "^1.0",
-            "symfony/process": "^2.5 || ^3.0 || ^4.0"
+            "symfony/phpunit-bridge": "^4.2 || ^5",
+            "symfony/process": "^2.5 || ^3.0 || ^4.0 || ^5.0"
         },
-        "time": "2019-08-02T09:05:43+00:00",
+        "time": "2021-01-12T12:10:35+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "1.x-dev"
+                "dev-main": "1.x-dev"
             }
         },
         "installation-source": "dist",
@@ -59,30 +60,31 @@
     },
     {
         "name": "embed/embed",
-        "version": "v3.4.1",
-        "version_normalized": "3.4.1.0",
+        "version": "v3.4.13",
+        "version_normalized": "3.4.13.0",
         "source": {
             "type": "git",
             "url": "https://github.com/oscarotero/Embed.git",
-            "reference": "960bbd5a62c5697302bd5394d58efba2e998b787"
+            "reference": "99f6d95aebd94251573e4f4febf14bc6aba28697"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/oscarotero/Embed/zipball/960bbd5a62c5697302bd5394d58efba2e998b787",
-            "reference": "960bbd5a62c5697302bd5394d58efba2e998b787",
+            "url": "https://api.github.com/repos/oscarotero/Embed/zipball/99f6d95aebd94251573e4f4febf14bc6aba28697",
+            "reference": "99f6d95aebd94251573e4f4febf14bc6aba28697",
             "shasum": ""
         },
         "require": {
             "composer/ca-bundle": "^1.0",
             "ext-curl": "*",
+            "ext-dom": "*",
             "ext-mbstring": "*",
-            "php": "^5.6|^7.0"
+            "php": "^5.6|^7.0|^8.0"
         },
         "require-dev": {
             "friendsofphp/php-cs-fixer": "^2.0",
-            "phpunit/phpunit": "^4.8|^5.7"
+            "phpunit/phpunit": "^5.7|^6.0|^7.0"
         },
-        "time": "2019-07-20T17:05:41+00:00",
+        "time": "2020-12-24T09:42:20+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -97,9 +99,9 @@
         "authors": [
             {
                 "name": "Oscar Otero",
-                "role": "Developer",
                 "email": "oom@oscarotero.com",
-                "homepage": "http://oscarotero.com"
+                "homepage": "http://oscarotero.com",
+                "role": "Developer"
             }
         ],
         "description": "PHP library to retrieve page info using oembed, opengraph, etc",
@@ -114,27 +116,26 @@
     },
     {
         "name": "getkirby/composer-installer",
-        "version": "1.1.4",
-        "version_normalized": "1.1.4.0",
+        "version": "1.2.1",
+        "version_normalized": "1.2.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/getkirby/composer-installer.git",
-            "reference": "2d6b8f5601a31caeeea45623e1643fbb437eb94e"
+            "reference": "c98ece30bfba45be7ce457e1102d1b169d922f3d"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/getkirby/composer-installer/zipball/2d6b8f5601a31caeeea45623e1643fbb437eb94e",
-            "reference": "2d6b8f5601a31caeeea45623e1643fbb437eb94e",
+            "url": "https://api.github.com/repos/getkirby/composer-installer/zipball/c98ece30bfba45be7ce457e1102d1b169d922f3d",
+            "reference": "c98ece30bfba45be7ce457e1102d1b169d922f3d",
             "shasum": ""
         },
         "require": {
-            "composer-plugin-api": "^1.0"
+            "composer-plugin-api": "^1.0 || ^2.0"
         },
         "require-dev": {
-            "composer/composer": "^1.8",
-            "phpunit/phpunit": "^7.0"
+            "composer/composer": "^1.8 || ^2.0"
         },
-        "time": "2019-02-11T20:27:36+00:00",
+        "time": "2020-12-28T12:54:39+00:00",
         "type": "composer-plugin",
         "extra": {
             "class": "Kirby\\ComposerInstaller\\Plugin"
