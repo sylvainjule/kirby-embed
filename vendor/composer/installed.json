@@ -60,17 +60,17 @@
     },
     {
         "name": "embed/embed",
-        "version": "v3.4.13",
-        "version_normalized": "3.4.13.0",
+        "version": "v3.4.15",
+        "version_normalized": "3.4.15.0",
         "source": {
             "type": "git",
             "url": "https://github.com/oscarotero/Embed.git",
-            "reference": "99f6d95aebd94251573e4f4febf14bc6aba28697"
+            "reference": "5028323230da075d6f515448fe62dfb179b9bde8"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/oscarotero/Embed/zipball/99f6d95aebd94251573e4f4febf14bc6aba28697",
-            "reference": "99f6d95aebd94251573e4f4febf14bc6aba28697",
+            "url": "https://api.github.com/repos/oscarotero/Embed/zipball/5028323230da075d6f515448fe62dfb179b9bde8",
+            "reference": "5028323230da075d6f515448fe62dfb179b9bde8",
             "shasum": ""
         },
         "require": {
@@ -84,7 +84,7 @@
             "friendsofphp/php-cs-fixer": "^2.0",
             "phpunit/phpunit": "^5.7|^6.0|^7.0"
         },
-        "time": "2020-12-24T09:42:20+00:00",
+        "time": "2021-04-02T10:59:24+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
