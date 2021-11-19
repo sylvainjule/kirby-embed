@@ -36,7 +36,7 @@
                     border-radius: 3px;
                 }
                 &-synced {
-                    background: rgba(#a7bd6a, .8);
+                    background: #b9ca88;
                     display: flex;
                     align-items: center;
                     .checkmark {
@@ -118,4 +118,16 @@
         background: $color-light url($pattern);
         opacity: 0.45;
     }
+}
+
+.k-embed-field-preview-icon {
+    background: #b9ca88;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    border-radius: 50%;
+    display: inline-block;
+    font-size: .75em;
+    margin-left: .5em;
+    text-align: center;
 }
