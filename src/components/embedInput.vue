@@ -12,7 +12,7 @@ export default {
     },
     methods: {
         onInput(value) {
-            if(!this.isValidUrl(value)) {
+            if(value == '' || !this.isValidUrl(value)) {
                 this.media = {}
                 this.emitInput(value)
                 return false;
