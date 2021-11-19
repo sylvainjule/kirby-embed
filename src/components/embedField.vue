@@ -47,6 +47,16 @@ export default {
             this.media = this.value.media
         }
     },
+    watch: {
+        inputValue() {
+            if(this.value && this.value.media && this.hasLength(this.value.media)) {
+                this.media = this.value.media
+            }
+            else {
+                this.media = {}
+            }
+        }
+    },
     computed: {
         hasMedia() {
             return this.hasLength(this.media) && this.media.code
