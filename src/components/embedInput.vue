@@ -23,6 +23,13 @@ export default {
                 .get('kirby-embed/get-data', { url: value })
                 .then(response => {
                     if(response['status'] == 'success' && response['data']) {
+                        if(response['data']['providerName'] == 'Vimeo') {
+                            let iframe = response['data']['code']
+                                iframe = this.htmlToElement(iframe)
+                                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+
+                            response['data']['code'] = iframe.outerHTML
+                        }
                         this.media = response['data']
                     }
                     else {
@@ -65,6 +72,13 @@ export default {
             if(!isUrl(value)) return false
             if(this.provider && !matchProvider(value, this.provider)) return false
             return true
+        },
+        htmlToElement(html) {
+            let template = document.createElement('template')
+                html     = html.trim()
+
+            template.innerHTML = html
+            return template.content.firstChild
         }
     },
 };
