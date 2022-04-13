@@ -1,7 +1,7 @@
 <template>
     <k-field :input="_uid" v-bind="$props" class="k-embed-field k-url-field k-field">
 
-        <div class="preview" v-if="hasMedia" :data-provider="media.providerName.toLowerCase()">
+        <div class="preview" v-if="hasMedia" :data-provider="providerName">
             <div class="preview-content" v-html="media.code"></div>
             <div class="preview-background"></div>
         </div>
@@ -60,6 +60,9 @@ export default {
     computed: {
         hasMedia() {
             return this.hasLength(this.media) && this.media.code
+        },
+        providerName() {
+            return this.hasMedia && this.media.providerName ? this.media.providerName.toLowerCase() : null
         },
         syncFailed() {
             return this.inputValue != '' && this.isValidUrl(this.inputValue) && !this.hasMedia
