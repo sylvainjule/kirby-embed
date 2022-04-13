@@ -1,7 +1,7 @@
 <template>
     <k-field :input="_uid" v-bind="$props" class="k-embed-field k-url-field k-field">
 
-        <div class="preview" v-if="hasMedia">
+        <div class="preview" v-if="hasMedia" :data-provider="media.providerName.toLowerCase()">
             <div class="preview-content" v-html="media.code"></div>
             <div class="preview-background"></div>
         </div>

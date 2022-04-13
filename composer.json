@@ -16,5 +16,10 @@
     "extra": {
         "installer-name": "embed"
     },
-    "minimum-stability": "beta"
+    "minimum-stability": "beta",
+    "config": {
+        "allow-plugins": {
+            "getkirby/composer-installer": true
+        }
+    }
 }

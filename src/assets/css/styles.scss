@@ -118,6 +118,17 @@
         background: $color-light url($pattern);
         opacity: 0.45;
     }
+    &[data-provider=youtube],  
+    &[data-provider=vimeo] {
+        .preview-content {
+            padding: 0;
+            iframe {
+              width: 100%;
+              aspect-ratio: 16 / 9;
+              height: auto;
+            }
+        }
+    }
 }
 
 .k-embed-field-preview-icon {
