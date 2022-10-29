@@ -11,7 +11,7 @@
     ],
     "require": {
         "getkirby/composer-installer": "^1.1",
-        "embed/embed": "^3.4"
+        "embed/embed": "3.4.18"
     },
     "extra": {
         "installer-name": "embed"

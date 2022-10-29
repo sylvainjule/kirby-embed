@@ -30,6 +30,13 @@ export default {
 
                             response['data']['code'] = iframe.outerHTML
                         }
+                        if(response['data']['providerName'] == 'Instagram') {
+                            let iframe = `<iframe src="${value}/embed" width="100%"></iframe>`
+                                iframe = this.htmlToElement(iframe)
+                                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+
+                            response['data']['code'] = iframe.outerHTML
+                        }
                         this.media = response['data']
                     }
                     else {
