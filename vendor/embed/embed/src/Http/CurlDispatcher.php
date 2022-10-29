@@ -1,260 +1,207 @@
 <?php
+declare(strict_types = 1);
 
 namespace Embed\Http;
 
-use Embed\Exceptions\EmbedException;
 use Composer\CaBundle\CaBundle;
-use stdClass;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
- * Curl dispatcher.
+ * Class to fetch html pages
  */
-class CurlDispatcher implements DispatcherInterface
+final class CurlDispatcher
 {
-    private $responses = [];
-    private static $acceptHeaders = [
-        'jpg' => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'gif' => 'image/gif',
-        'png' => 'image/png',
-        'mp3' => 'audio/mpeg',
-        'mp4' => 'video/mp4',
-        'ogg' => 'audio/ogg',
-        'ogv' => 'video/ogg',
-        'webm' => 'video/webm',
-    ];
-
-    private $config = [
-        CURLOPT_HTTPHEADER => [],
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_TIMEOUT => 10,
-        CURLOPT_SSL_VERIFYHOST => 0,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_ENCODING => '',
-        CURLOPT_AUTOREFERER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_USERAGENT => 'Embed PHP library',
-        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-    ];
+    private RequestInterface $request;
+    private $curl;
+    private $result;
+    private array $headers = [];
+    private $isBinary = false;
+    private $body;
+    private ?int $error = null;
+    private array $settings;
 
     /**
-     * Constructor.
-     *
-     * @param array $config
+     * @return ResponseInterface[]
      */
-    public function __construct(array $config = [])
+    public static function fetch(array $settings, ResponseFactoryInterface $responseFactory, RequestInterface ...$requests): array
     {
-        $this->config = $config + $this->config;
+        if (count($requests) === 1) {
+            $connection = new static($settings, $requests[0]);
+            return [$connection->exec($responseFactory)];
+        }
 
-        if (!isset($this->config[CURLOPT_COOKIEJAR])) {
-            $cookies = str_replace('//', '/', sys_get_temp_dir().'/embed-cookies-'.uniqid().'.txt');
+        //Init connections
+        $multi = curl_multi_init();
+        $connections = [];
 
-            if (is_file($cookies)) {
-                if (!is_writable($cookies)) {
-                    throw new EmbedException(sprintf('The temporary cookies file "%s" is not writable', $cookies));
-                }
-            } elseif (!is_writable(dirname($cookies))) {
-                throw new EmbedException(sprintf('The temporary folder "%s" is not writable', dirname($cookies)));
+        foreach ($requests as $request) {
+            $connection = new static($settings, $request);
+            curl_multi_add_handle($multi, $connection->curl);
+
+            $connections[] = $connection;
+        }
+
+        //Run
+        $active = null;
+        do {
+            $status = curl_multi_exec($multi, $active);
+
+            if ($active) {
+                curl_multi_select($multi);
             }
 
-            $this->config[CURLOPT_COOKIEJAR] = $cookies;
-            $this->config[CURLOPT_COOKIEFILE] = $cookies;
+            $info = curl_multi_info_read($multi);
+
+            if ($info) {
+                foreach ($connections as $connection) {
+                    if ($connection->curl === $info['handle']) {
+                        $connection->result = $info['result'];
+                        break;
+                    }
+                }
+            }
+        } while ($active && $status == CURLM_OK);
+
+        //Close connections
+        foreach ($connections as $connection) {
+            curl_multi_remove_handle($multi, $connection->curl);
         }
+
+        curl_multi_close($multi);
+
+        return array_map(
+            fn ($connection) => $connection->exec($responseFactory),
+            $connections
+        );
     }
 
-    /**
-     * Return all responses for debug purposes
-     *
-     * @return AbstractResponse[]
-     */
-    public function getAllResponses()
+    private function __construct(array $settings, RequestInterface $request)
     {
-        return $this->responses;
+        $this->request = $request;
+        $this->curl = curl_init((string) $request->getUri());
+        $this->settings = $settings;
+
+        $cookies = $settings['cookies_path'] ?? str_replace('//', '/', sys_get_temp_dir().'/embed-cookies.txt');
+
+        curl_setopt_array($this->curl, [
+            CURLOPT_HTTPHEADER => $this->getRequestHeaders(),
+            CURLOPT_POST => strtoupper($request->getMethod()) === 'POST',
+            CURLOPT_MAXREDIRS => $settings['max_redirs'] ?? 10,
+            CURLOPT_CONNECTTIMEOUT => $settings['connect_timeout'] ?? 10,
+            CURLOPT_TIMEOUT => $settings['timeout'] ?? 10,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYHOST => $settings['ssl_verify_host'] ?? 0,
+            CURLOPT_SSL_VERIFYPEER => $settings['ssl_verify_peer'] ?? false,
+            CURLOPT_ENCODING => '',
+            CURLOPT_CAINFO => CaBundle::getSystemCaRootBundlePath(),
+            CURLOPT_AUTOREFERER => true,
+            CURLOPT_FOLLOWLOCATION => $settings['follow_location'] ?? true,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_USERAGENT => $settings['user_agent'] ?? $request->getHeaderLine('User-Agent'),
+            CURLOPT_COOKIEJAR => $cookies,
+            CURLOPT_COOKIEFILE => $cookies,
+            CURLOPT_HEADERFUNCTION => [$this, 'writeHeader'],
+            CURLOPT_WRITEFUNCTION => [$this, 'writeBody'],
+        ]);
     }
 
-    /**
-     * Remove the cookies file on destruct the instance.
-     */
-    public function __destruct()
+    private function exec(ResponseFactoryInterface $responseFactory): ResponseInterface
     {
-        $cookies = $this->config[CURLOPT_COOKIEJAR];
+        curl_exec($this->curl);
 
-        if (is_file($cookies)) {
-            unlink($cookies);
-        }
-    }
+        $info = curl_getinfo($this->curl);
 
-    /**
-     * {@inheritdoc}
-     */
-    public function dispatch(Url $url)
-    {
-        $options = $this->config;
-
-        $extension = $url->getExtension();
-
-        if (!empty($extension) && isset(self::$acceptHeaders[$extension])) {
-            $options[CURLOPT_HTTPHEADER][] = 'Accept: '.self::$acceptHeaders[$extension];
-        } else {
-            $options[CURLOPT_HTTPHEADER][] = 'Accept: */*';
+        if ($this->error) {
+            $this->error(curl_strerror($this->error), $this->error);
         }
 
-        $response = $this->exec($url, $options);
-
-        //Some sites returns 400 or 403 with the default user-agent
-        if ($response->getStatusCode() === 400 || $response->getStatusCode() === 403) {
-            $options[CURLOPT_USERAGENT] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
-
-            return $this->exec($url, $options);
+        if (curl_errno($this->curl)) {
+            $this->error(curl_error($this->curl), curl_errno($this->curl));
         }
 
-        //Other sites needs a certificate
-        if (
-            class_exists('Composer\\CaBundle\\CaBundle')
-         && $response->getStatusCode() === 0
-         && strpos($response->getError(), 'SSL') !== false
-        ) {
-            $options[CURLOPT_SSL_VERIFYHOST] = 2;
-            $options[CURLOPT_SSL_VERIFYPEER] = true;
-            $options[CURLOPT_CAINFO] = CaBundle::getSystemCaRootBundlePath();
+        curl_close($this->curl);
 
-            return $this->exec($url, $options);
+        $response = $responseFactory->createResponse($info['http_code']);
+
+        foreach ($this->headers as $header) {
+            list($name, $value) = $header;
+            $response = $response->withAddedHeader($name, $value);
+        }
+
+        $response = $response
+            ->withAddedHeader('Content-Location', $info['url'])
+            ->withAddedHeader('X-Request-Time', sprintf('%.3f ms', $info['total_time']));
+
+        if ($this->body) {
+            //5Mb max
+            $response->getBody()->write(stream_get_contents($this->body, 5000000, 0));
         }
 
         return $response;
     }
 
-    /**
-     * Execute a curl request
-     *
-     * @param Url   $url
-     * @param array $options
-     *
-     * @return Response
-     */
-    protected function exec(Url $url, array $options)
+    private function error(string $message, int $code)
     {
-        $connection = curl_init((string) $url);
-        curl_setopt_array($connection, $options);
+        $ignored = $this->settings['ignored_errors'] ?? null;
 
-        $curl = new CurlResult($connection);
+        if ($ignored === true || (is_array($ignored) && in_array($code, $ignored))) {
+            return;
+        }
 
-        //Get only text responses
-        $curl->onHeader(function ($name, $value, $data) {
-            if ($name === 'content-type') {
-                $data->isBinary = !preg_match('/(text|html|json)/', strtolower($value));
-            }
-        });
+        if ($this->isBinary && $code === CURLE_WRITE_ERROR) {
+            // The write callback aborted the request to prevent a download of the binary file
+            return;
+        }
 
-        $curl->onBody(function ($string, stdClass $data) {
-            return empty($data->isBinary);
-        });
-
-        curl_exec($connection);
-
-        $result = $curl->getResult();
-
-        curl_close($connection);
-
-        return $this->responses[] = new Response(
-            $url,
-            Url::create($result['url']),
-            $result['statusCode'],
-            $result['contentType'],
-            $result['content'],
-            $result['headers'],
-            $result['info']
-        );
+        throw new NetworkException($message, $code, $this->request);
     }
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function dispatchImages(array $urls)
+    private function getRequestHeaders(): array
     {
-        if (empty($urls)) {
-            return [];
-        }
+        $headers = [];
 
-        $curl_multi = curl_multi_init();
-        $responses = [];
-        $connections = [];
-
-        foreach ($urls as $k => $url) {
-            if ($url->getScheme() === 'data') {
-                $response = ImageResponse::createFromBase64($url);
-
-                if ($response) {
-                    $responses[$k] = $response;
-                }
-
-                continue;
-            }
-
-            $connection = curl_init((string) $url);
-
-            $options = $this->config;
-            $options[CURLOPT_HTTPHEADER] = ['Accept: image/*'];
-
-            curl_setopt_array($connection, $options);
-            curl_multi_add_handle($curl_multi, $connection);
-
-            $curl = new CurlResult($connection);
-
-            $curl->onBody(function ($body, stdClass $data) {
-                if (($info = @getimagesizefromstring($body))) {
-                    $data->width = $info[0];
-                    $data->height = $info[1];
-                    $data->mime = $info['mime'];
-
-                    return false;
-                }
-            });
-
-            $connections[$k] = $curl;
-        }
-
-        if (!empty($connections)) {
-            do {
-                $return = curl_multi_exec($curl_multi, $active);
-            } while ($return === CURLM_CALL_MULTI_PERFORM);
-
-            while ($active && $return === CURLM_OK) {
-                if (curl_multi_select($curl_multi) === -1) {
-                    usleep(100);
-                }
-
-                do {
-                    $return = curl_multi_exec($curl_multi, $active);
-                } while ($return === CURLM_CALL_MULTI_PERFORM);
-            }
-
-            foreach ($connections as $k => $connection) {
-                $resource = $connection->getResource();
-
-                curl_multi_remove_handle($curl_multi, $resource);
-                $result = $connection->getResult();
-
-                if (!empty($result['data']->mime)) {
-                    $responses[$k] = $this->responses[] = new ImageResponse(
-                        $urls[$k],
-                        Url::create($result['url']),
-                        $result['statusCode'],
-                        $result['contentType'],
-                        [$result['data']->width, $result['data']->height],
-                        $result['headers'],
-                        $result['info']
-                    );
-                }
+        foreach ($this->request->getHeaders() as $name => $values) {
+            switch (strtolower($name)) {
+                case 'user-agent':
+                break;
+                default:
+                $headers[] = $name . ':' . implode(', ', $values);
             }
         }
 
-        curl_multi_close($curl_multi);
+        return $headers;
+    }
 
-        ksort($responses, SORT_NUMERIC);
+    private function writeHeader($curl, $string): int
+    {
+        if (preg_match('/^([\w-]+):(.*)$/', $string, $matches)) {
+            $name = strtolower($matches[1]);
+            $value = trim($matches[2]);
+            $this->headers[] = [$name, $value];
 
-        return array_values($responses);
+            if ($name === 'content-type') {
+                $this->isBinary = !preg_match('/(text|html|json)/', strtolower($value));
+            }
+        } elseif ($this->headers) {
+            $key = array_key_last($this->headers);
+            $this->headers[$key][1] .= ' '.trim($string);
+        }
+
+        return strlen($string);
+    }
+
+    private function writeBody($curl, $string): int
+    {
+        if ($this->isBinary) {
+            return -1;
+        }
+
+        if (!$this->body) {
+            $this->body = fopen('php://temp', 'w+');
+        }
+
+        return fwrite($this->body, $string);
     }
 }

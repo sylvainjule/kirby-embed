@@ -1,29 +1,32 @@
 
 # Embed
 
-[![Build Status][ico-travis]][link-travis]
-[![Quality Score][ico-scrutinizer]][link-scrutinizer]
-[![Reference Status][ico-references]][link-references]
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-packagist]
 [![Monthly Downloads][ico-m-downloads]][link-packagist]
 [![Software License][ico-license]](LICENSE)
-[![SensioLabs Insight][ico-sensiolabs]][link-sensiolabs]
 
 PHP library to get information from any web page (using oembed, opengraph, twitter-cards, scrapping the html, etc). It's compatible with any web service (youtube, vimeo, flickr, instagram, etc) and has adapters to some sites like (archive.org, github, facebook, etc).
 
 Requirements:
 
-* PHP 5.5+
+* PHP 7.4+
 * Curl library installed
+* PSR-17 implementation. By default these libraries are detected automatically:
+  * [laminas/laminas-diactoros](https://github.com/laminas/laminas-diactoros)
+  * [guzzle/psr7](https://github.com/guzzle/psr7)
+  * [nyholm/psr7](https://github.com/Nyholm/psr7)
+  * [sunrise/http-message](https://github.com/sunrise-php/http-message)
 
->
-* If you need PHP 5.3 support, use the 1.x version
-* If you need PHP 5.4 support, use the 2.x version
+> If you need PHP 5.5-7.3 support, [use the 3.x version](https://github.com/oscarotero/Embed/tree/v3.x)
 
 ## Online demo
 
-http://oscarotero.com/embed3/demo
+http://oscarotero.com/embed/demo
+
+## Video Tutorial
+ [<img src="https://img.youtube.com/vi/4YCLRpKY1cs/0.jpg" width="250">](https://youtu.be/4YCLRpKY1cs)
+ 
 
 ## Installation
 
@@ -33,270 +36,325 @@ This package is installable and autoloadable via Composer as [embed/embed](https
 $ composer require embed/embed
 ```
 
-If you cannot (or don't want to) use composer, just include the [PSR-4 autoload.php file](src/autoloader.php) in your code.
-
 ## Usage
 
 ```php
 use Embed\Embed;
 
+$embed = new Embed();
+
 //Load any url:
-$info = Embed::create('https://www.youtube.com/watch?v=PP1xn5wHtxE');
+$info = $embed->get('https://www.youtube.com/watch?v=PP1xn5wHtxE');
 
 //Get content info
 
 $info->title; //The page title
 $info->description; //The page description
 $info->url; //The canonical url
-$info->type; //The page type (link, video, image, rich)
-$info->tags; //The page keywords (tags)
+$info->keywords; //The page keywords
 
-$info->images; //List of all images found in the page
-$info->image; //The image choosen as main image
-$info->imageWidth; //The width of the main image
-$info->imageHeight; //The height of the main image
+$info->image; //The thumbnail or main image
 
-$info->code; //The code to embed the image, video, etc
-$info->width; //The width of the embed code
-$info->height; //The height of the embed code
-$info->aspectRatio; //The aspect ratio (width/height)
+$info->code->html; //The code to embed the image, video, etc
+$info->code->width; //The exact width of the embed code (if exists)
+$info->code->height; //The exact height of the embed code (if exists)
+$info->code->ratio; //The aspect ratio (width/height)
 
 $info->authorName; //The resource author
 $info->authorUrl; //The author url
 
+$info->cms; //The cms used
+$info->language; //The language of the page
+$info->languages; //The alternative languages
+
 $info->providerName; //The provider name of the page (Youtube, Twitter, Instagram, etc)
 $info->providerUrl; //The provider url
-$info->providerIcons; //All provider icons found in the page
-$info->providerIcon; //The icon choosen as main icon
+$info->icon; //The big icon of the site
+$info->favicon; //The favicon of the site (an .ico file or a png with up to 32x32px)
 
-$info->publishedDate; //The published date of the resource
+$info->publishedTime; //The published time of the resource
 $info->license; //The license url of the resource
-$info->linkedData; //The linked-data info (http://json-ld.org/)
 $info->feeds; //The RSS/Atom feeds
 ```
 
-## The adapter
-
-The adapter is the class that get all information of the page from the providers and choose the best result for each value. For example, a page can provide multiple titles from opengraph, twitter cards, oembed, the `<title>` html element, etc, so the adapter get all this titles and choose the best one.
-
-Embed has an generic adapter called "Webpage" to use with any web but has also some specific adapters for sites like archive.org, facebook, google, github, spotify, etc, that provides information using their own apis, or need to fix any specific issue.
-
-The available options for the adapters are:
-
-Name | Type | Description
------|------|------------
-`min_image_width` | `int` | Minimal image width used to choose the main image
-`min_image_height` | `int` | Minimal image height used to choose the main image
-`choose_bigger_image` | `bool` | Choose the bigger image as the main image (instead the first found, that usually is the most relevant).
-`images_blacklist` | `string`&#124;`array` | Images that you don't want to be used. Could be plain text or [Uri](https://github.com/oscarotero/Embed/blob/master/src/Http/Url.php) match pattern.
-`url_blacklist` | `string`&#124;`array` | URLs that you don't want to be used. Could be plain text or [Uri](https://github.com/oscarotero/Embed/blob/master/src/Http/Url.php) match pattern.
-`follow_canonical` | `bool` | Whether to redirect to the canonical URL or not.
-`custom_adapters_namespace` | `string`&#124;`array` | A namespace used to load custom adapters. This allows to override the behaviour of existing adapters or add support for more sites.
-
-## The providers
-
-The providers get the data from different sources. Each source has it's own provider. For example, there is a provider for opengraph, other for twitter cards, for oembed, html, etc. Some providers can be configured and are the following:
-
-### oembed
-
-Used to get data from oembed api if it's available:
-
-Name | Type | Description
------|------|------------
-`parameters` | `array` | Extra query parameters to send with the oembed request
-`embedly_key` | `string` | If it's defined, use embed.ly api as fallback oembed provider.
-`iframely_key` | `string` | If it's defined, use iframe.ly api as fallback oembed provider.
-
-### html
-
-Used to get data directly from the html code of the page:
-
-Name | Type | Description
------|------|------------
-`max_images` | `int` | Max number of images fetched from the html code (searching for the `<img>` elements). By default is -1 (no limit). Use 0 to no get images.
-`external_images` | `bool`&#124;`array` | By default is `false`, this means that images located in other domains are not allowed. You can set `true` (allow all) or provide an array of url patterns.
-
-### google
-
-Used only for google maps to generate the embed code.
-
-Name | Type | Description
------|------|------------
-`key` | `string` | The key used [for the embed api](https://developers.google.com/maps/documentation/embed/)
-
-### soundcloud
-
-Used only for soundcloud pages, to get information using its api.
-
-Name | Type | Description
------|------|------------
-`key` | `string` | The key used to get info from soundcloud API.
-
-### facebook
-
-Used only for facebook events (not needed for posts, images, etc), to get information using its api.
-
-Name | Type | Description
------|------|------------
-`key` | `string` | The access token used to get info from facebook graph API.
-`events_fields` | `string` | Comma-separated list of fields to query for a facebook event. Please refer to [Facebook documentation](https://developers.facebook.com/docs/graph-api/reference/event) for the full list of available fields.
-`videos_fields` | `string` | Comma-separated list of fields to query for a facebook video. Please refer to [Facebook documentation](https://developers.facebook.com/docs/graph-api/reference/event) for the full list of available fields.
-
-## Example with all options:
-
-The options are passed as the second argument as you can see in the following example:
-
-```php
-$info = Embed::create($url, [
-    'min_image_width' => 100,
-    'min_image_height' => 100,
-    'choose_bigger_image' => true,
-    'images_blacklist' => 'example.com/*',
-    'url_blacklist' => 'example.com/*',
-    'follow_canonical' => true,
-
-    'html' => [
-        'max_images' => 10,
-        'external_images' => true
-    ],
-
-    'oembed' => [
-        'parameters' => [],
-        'embedly_key' => 'YOUR_KEY',
-        'iframely_key' => 'YOUR_KEY',
-    ],
-
-    'google' => [
-        'key' => 'YOUR_KEY',
-    ],
-
-    'soundcloud' => [
-        'key' => 'YOUR_KEY',
-    ],
-
-    'facebook' => [
-        'key' => 'YOUR_KEY',
-        'fields' => 'field1,field2,field3' // default : cover,description,end_time,id,name,owner,place,start_time,timezone
-    ],
-]);
-```
-
-## The dispatcher
-
-To dispatch the http request, Embed includes the interface `Embed\Http\DispatcherInterface`. By default the curl library is used but you can create your own dispatcher to use any other library like [guzzle](https://github.com/guzzle/guzzle):
+## Parallel multiple requests
 
 ```php
 use Embed\Embed;
-use Embed\Http\DispatcherInteface;
-use Embed\Http\Url;
-use Embed\Http\Response;
-use Embed\Http\ImageResponse;
 
-class MyDispatcher implements DispatcherInterface
+$embed = new Embed();
+
+//Load multiple urls asynchronously:
+$infos = $embed->getMulti(
+    'https://www.youtube.com/watch?v=PP1xn5wHtxE',
+    'https://twitter.com/carlosmeixidefl/status/1230894146220625933',
+    'https://en.wikipedia.org/wiki/Tordoia',
+);
+
+foreach ($infos as $info) {
+    echo $info->title;
+}
+```
+
+## Document
+
+The document is the object that store the html code of the page. You can use it to extract extra info from the html code:
+
+```php
+//Get the document object
+$document = $info->getDocument();
+
+$document->link('image_src'); //Returns the href of a <link>
+$document->getDocument(); //Returns the DOMDocument instance
+$html = (string) $document; //Returns the html code
+
+$document->select('.//h1'); //Search
+```
+
+You can perform xpath queries in order to select specific elements. A search always return an instance of a `Embed\QueryResult`:
+
+```php
+//Search the A elements
+$result = $document->select('.//a');
+
+//Filter the results
+$result->filter(fn ($node) => $node->getAttribute('href'));
+
+$id = $result->str('id'); //Return the id of the first result as string
+$text = $result->str(); //Return the content of the first result
+
+$ids = $result->strAll('id'); //Return an array with the ids of all results as string
+$texts = $result->strAll(); //Return an array with the content of all results as string
+
+$tabindex = $result->int('tabindex'); //Return the tabindex attribute of the first result as integer
+$number = $result->int(); //Return the content of the first result as integer
+
+$href = $result->url('href'); //Return the href attribute of the first result as url (converts relative urls to absolutes)
+$url = $result->url(); //Return the content of the first result as url
+
+$node = $result->node(); //Return the first node found (DOMElement)
+$nodes = $result->nodes(); //Return all nodes found
+```
+
+## Metas
+
+For convenience, the object `Metas` stores the value of all `<meta>` elements located in the html, so you can get the values easier. The key of every meta is get from the `name`, `property` or `itemprop` attributes and the value is get from `content`.
+
+```php
+//Get the Metas object
+$metas = $info->getMetas();
+
+$metas->all(); //Return all values
+$metas->get('og:title'); //Return a key value
+$metas->str('og:title'); //Return the value as string (remove html tags)
+$metas->html('og:description'); //Return the value as html
+$metas->int('og:video:width'); //Return the value as integer
+$metas->url('og:url'); //Return the value as full url (converts relative urls to absolutes)
+```
+
+## OEmbed
+
+In addition to the html and metas, this library uses [oEmbed](https://oembed.com/) endpoints to get additional data. You can get this data as following:
+
+```php
+//Get the oEmbed object
+$oembed = $info->getOEmbed();
+
+$oembed->all(); //Return all raw data
+$oembed->get('title'); //Return a key value
+$oembed->str('title'); //Return the value as string (remove html tags)
+$oembed->html('html'); //Return the value as html
+$oembed->int('width'); //Return the value as integer
+$oembed->url('url'); //Return the value as full url (converts relative urls to absolutes)
+```
+
+Additional oEmbed parameters (like instagrams `hidecaption`) can also be provided:
+```php
+$embed = new Embed();
+
+$result = $embed->get('https://www.instagram.com/p/B_C0wheCa4V/');
+$result->setSettings([
+    'oembed:query_parameters' => ['hidecaption' => true]
+]);
+$oembed = $info->getOEmbed();
+```
+
+## LinkedData
+
+Another API available by default, used to extract info using the [JsonLD](https://www.w3.org/TR/json-ld/) schema.
+
+```php
+//Get the linkedData object
+$ld = $info->getLinkedData();
+
+$ld->all(); //Return all data
+$ld->get('name'); //Return a key value
+$ld->str('name'); //Return the value as string (remove html tags)
+$ld->html('description'); //Return the value as html
+$ld->int('width'); //Return the value as integer
+$ld->url('url'); //Return the value as full url (converts relative urls to absolutes)
+```
+
+## Other APIs
+
+Some sites like Wikipedia or Archive.org provide a custom API that is used to fetch more reliable data. You can get the API object with the method `getApi()` but note that not all results have this method. The Api object has the same methods than oEmbed:
+
+```php
+//Get the API object
+$api = $info->getApi();
+
+$api->all(); //Return all raw data
+$api->get('title'); //Return a key value
+$api->str('title'); //Return the value as string (remove html tags)
+$api->html('html'); //Return the value as html
+$api->int('width'); //Return the value as integer
+$api->url('url'); //Return the value as full url (converts relative urls to absolutes)
+```
+
+## Extending Embed
+
+Depending of your needs, you may want to extend this library with extra features or change the way it makes some operations.
+
+### PSR
+
+Embed use some PSR standards to be the most interoperable possible:
+
+- [PSR-7](https://www.php-fig.org/psr/psr-7/) Standard interfaces to represent http requests, responses and uris
+- [PSR-17](https://www.php-fig.org/psr/psr-17/) Standard factories to create PSR-7 objects
+- [PSR-18](https://www.php-fig.org/psr/psr-18/) Standard interface to send a http request and return a response
+
+Embed comes with a CURL client compatible with PSR-18 but you need to install a PSR-7 / PSR-17 library. [Here you can see a list of popular libraries](https://github.com/middlewares/awesome-psr15-middlewares#psr-7-implementations) and the library can detect automatically 'laminas\diactoros', 'guzzleHttp\psr7', 'slim\psr7', 'nyholm\psr7' and 'sunrise\http' (in this order). If you want to use a different PSR implementation, you can do it in this way:
+
+```php
+use Embed\Embed;
+use Embed\Http\Crawler;
+
+$client = new CustomHttpClient();
+$requestFactory = new CustomRequestFactory();
+$uriFactory = new CustomUriFactory();
+
+//The Crawler is responsible for perform http queries
+$crawler = new Crawler($client, $requestFactory, $uriFactory);
+
+//Create an embed instance passing the Crawler
+$embed = new Embed($crawler);
+```
+
+### Adapters
+
+There are some sites with special needs: because they provide public APIs that allows to extract more info (like Wikipedia or Archive.org) or because we need to change how to extract the data in this particular site. For all that cases we have the adapters, that are classes extending the default classes to provide extra functionality.
+
+Before creating an adapter, you need to understand how Embed work: when you execute this code, you get a `Extractor` class
+
+```php
+//Get the Extractor with all info
+$info = $embed->get($url);
+
+//The extractor have document and oembed:
+$document = $info->getDocument();
+$oembed = $info->getOEmbed();
+```
+
+The `Extractor` class has many `Detectors`. Each detector is responsible to detect a specific piece of info. For example, there's a detector for the title, other for description, image, code, etc.
+
+So, an adapter is basically an extractor created specifically for a site. It can contains also custom detectors or apis. If you see the `src/Adapters` folder you can see all adapters.
+
+If you create an adapter, you need also register to Embed, so it knows in which website needs to use. To do that, there's the `ExtractorFactory` object, that is responsible for instantiate the right extractor for each site.
+
+```php
+use Embed\Embed;
+
+$embed = new Embed();
+
+$factory = $embed->getExtractorFactory();
+
+//Use this MySite adapter for mysite.com
+$factory->addAdapter('mysite.com', MySite::class);
+
+//Remove the adapter for pinterest.com, so it will use the default extractor
+$factory->removeAdapter('pinterest.com');
+
+//Change the default extractor
+$factory->setDefault(CustomExtractor::class);
+```
+
+### Detectors
+
+Embed comes with several predefined detectors, but you may want to change or add more. Just create a class extending `Embed\Detectors\Detector` class and register it in the extractor factory. For example:
+
+```php
+use Embed\Embed;
+use Embed\Detectors\Detector;
+
+class Robots extends Detector
 {
-    public function dispatch(Url $url)
+    public function detect(): ?string
     {
-        $result = function_to_execute_request($url);
+        $response = $this->extractor->getResponse();
+        $metas = $this->extractor->getMetas();
 
-        return new Response($url, $result['url'], $result['status'], $result['type'], $result['content'], $result['headers']);
-    }
-
-    public function dispatchImages(array $urls)
-    {
-        $responses = [];
-
-        foreach ($urls as $url) {
-            $result = function_to_get_image_size($url);
-
-            if ($result) {
-                $responses[] = new ImageResponse($url, $result['url'], $result['status'], $result['type'], $result['size'], $result['headers']);
-            }
-        }
-
-        return $responses;
+        return $response->getHeaderLine('x-robots-tag'),
+            ?: $metas->str('robots');
     }
 }
 
-//Use the dispatcher passing as third argument
-$info = Embed::create('http://example.com', null, new MyDispatcher());
+//Register the detector
+$embed = new Embed();
+$embed->getExtractorFactory()->addDetector('robots', Robots::class);
+
+//Use it
+$info = $embed->get('http://example.com');
+$robots = $info->robots;
 ```
 
-The default curl dispatcher accepts the same options that the [curl_setopt PHP function](http://php.net/manual/en/function.curl-setopt.php). You can edit the default values:
+### Settings
+
+If you need to pass settings to the CurlClient to perform http queries:
 
 ```php
 use Embed\Embed;
-use Embed\Http\CurlDispatcher;
+use Embed\Http\Crawler;
+use Embed\Http\CurlClient;
 
-$dispatcher = new CurlDispatcher([
-    CURLOPT_MAXREDIRS => 20,
-    CURLOPT_CONNECTTIMEOUT => 10,
-    CURLOPT_TIMEOUT => 10,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_SSL_VERIFYHOST => false,
-    CURLOPT_ENCODING => '',
-    CURLOPT_AUTOREFERER => true,
-    CURLOPT_USERAGENT => 'Embed PHP Library',
-    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+$client = new CurlClient();
+$client->setSettings([
+    'cookies_path' => $cookies_path,
+    'ignored_errors' => [18],
+    'max_redirs' => 3,               // see CURLOPT_MAXREDIRS
+    'connect_timeout' => 2,          // see CURLOPT_CONNECTTIMEOUT
+    'timeout' => 2,                  // see CURLOPT_TIMEOUT
+    'ssl_verify_host' => 2,          // see CURLOPT_SSL_VERIFYHOST
+    'ssl_verify_peer' => 1,          // see CURLOPT_SSL_VERIFYPEER
+    'follow_location' => true,       // see CURLOPT_FOLLOWLOCATION
+    'user_agent' => 'Mozilla',       // see CURLOPT_USERAGENT
 ]);
 
-$info = Embed::create('http://example.com', null, $dispatcher);
+$embed = new Embed(new Crawler($client));
 ```
 
-## Accessing to advanced data
-
-The adapter get the data from all providers and choose the best values. But you can get all available values accessing directly to each provider. There's also the possibility to inspect all http requests executed for debug purposes:
+If you need to pass settings to your detectors, you can add settings to the `ExtractorFactory`:
 
 ```php
 use Embed\Embed;
 
-//Get the info
-$info = Embed::create('https://www.youtube.com/watch?v=PP1xn5wHtxE');
-
-//Get all providers
-$providers = $info->getProviders();
-
-//Get the oembed provider
-$oembed = $providers['oembed'];
-
-//Get the oembed title value:
-echo $oembed->getTitle();
-
-//Get any value returned by the oembed api
-echo $oembed->bag->get('author_name');
-
-//Get the main response object
-$response = $info->getResponse();
-
-//Get any http response header
-$lastModified = $response->getHeader('Last-Modifier');
-
-//Get the html body as DOMDocument
-$html = $response->getHtmlContent();
-
-//Get all http request executed (oembed endpoints, images, apis, etc...)
-$dispatcher = $adapter->getDispatcher();
-
-foreach ($dispatcher->getAllResponses() as $response) {
-    echo 'The request to '.$response->getStartingUrl();
-    echo ' is resolved to '.$response->getUrl();
-}
+$embed = new Embed();
+$embed->setSettings([
+    'oembed:query_parameters' => [],  //Extra parameters send to oembed
+    'twitch:parent' => 'example.com', //Required to embed twitch videos as iframe
+    'facebook:token' => '1234|5678',  //Required to embed content from Facebook
+    'instagram:token' => '1234|5678', //Required to embed content from Instagram
+    'twitter:token' => 'asdf',        //Improve the data from twitter
+]);
+$info = $embed->get($url);
 ```
+
+Note: The built-in detectors does not require settings. This feature is only for convenience if you create a specific detector that requires settings.
 
 ---
 
-If this library is useful for you, say thanks [buying me a beer :beer:](https://www.paypal.me/oscarotero)!
-
 [ico-version]: https://poser.pugx.org/embed/embed/v/stable
-[ico-travis]: https://travis-ci.org/oscarotero/Embed.svg?branch=master
 [ico-license]: https://poser.pugx.org/embed/embed/license
-[ico-scrutinizer]: https://scrutinizer-ci.com/g/oscarotero/Embed/badges/quality-score.png?s=79e37032db280b9795388124c030dcf4309343d1
-[ico-sensiolabs]: https://insight.sensiolabs.com/projects/f0beab9f-fe41-47db-8806-373f80c50f9e/big.png
 [ico-downloads]: https://poser.pugx.org/embed/embed/downloads
 [ico-m-downloads]: https://poser.pugx.org/embed/embed/d/monthly
-[ico-references]: https://www.versioneye.com/php/embed:embed/reference_badge.svg?style=flat
 
 [link-packagist]: https://packagist.org/packages/embed/embed
-[link-travis]: https://travis-ci.org/oscarotero/Embed
-[link-scrutinizer]: https://scrutinizer-ci.com/g/oscarotero/Embed/
-[link-sensiolabs]: https://insight.sensiolabs.com/projects/f0beab9f-fe41-47db-8806-373f80c50f9e
-[link-references]: https://www.versioneye.com/php/embed:embed/references

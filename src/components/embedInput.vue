@@ -24,11 +24,11 @@ export default {
                 .then(response => {
                     if(response['status'] == 'success' && response['data']) {
                         if(response['data']['providerName'] == 'Vimeo') {
-                            let iframe = response['data']['code']
+                            let iframe = response['data']['html']
                                 iframe = this.htmlToElement(iframe)
                                 iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
 
-                            response['data']['code'] = iframe.outerHTML
+                            response['data']['html'] = iframe.outerHTML
                         }
                         this.media = response['data']
                     }
