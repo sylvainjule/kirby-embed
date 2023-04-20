@@ -106,6 +106,13 @@ $info->linkedData();    // The linked-data info (http://json-ld.org/)
 $info->feeds();         // The RSS/Atom feeds
 ```
 
+A global site method is available to request embed data  `$site->getEmbedData($url)`).
+
+```php
+$url = 'https://www.youtube.com/watch?v=XXX';
+$site->getEmbedData($url);
+```
+
 <br/>
 
 ## 5. License
