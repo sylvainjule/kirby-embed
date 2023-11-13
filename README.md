@@ -11,10 +11,9 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 - [1. Installation](#1-installation)
 - [2. Blueprint usage](#2-blueprint-usage)
-- [3. Options](#3-options)
-- [4. Front-end usage](#4-front-end-usage)
-- [5. License](#5-license)
-- [6. Credits](#6-credits)
+- [3. Front-end usage](#3-front-end-usage)
+- [4. License](#4-license)
+- [5. Credits](#5-credits)
 
 ## 1. Installation
 
@@ -49,19 +48,7 @@ The field also has all the `url` field's options, except those which wouldn't ma
 
 <br/>
 
-## 3. Options
-
-```php
-// site/config/config.php
-return array(
-    'sylvainjule.embed.min_image_width'  => 60, // Minimal image width used to choose the main image
-    'sylvainjule.embed.min_image_height' => 60, // Minimal image height used to choose the main image
-);
-```
-
-<br/>
-
-## 4. Front-end usage
+## 3. Front-end usage
 
 The plugin provides a `->toEmbed()` method, which is useful to get all the stored data of the embed (its html code, and a few other informations detailed below).
 
@@ -82,28 +69,23 @@ $embed->url();          // The canonical url
 $embed->type();         // The page type (link, video, image, rich)
 $embed->tags();         // The page keywords (tags)
 
-$info->images();        // List of all images found in the page
-$info->image();         // The image choosen as main image
-$info->imageWidth();    // The width of the main image
-$info->imageHeight();   // The height of the main image
+$embed->image();         // The main image found in the page
 
-$info->code();          // The code to embed the image, video, etc
-$info->width();         // The width of the embed code
-$info->height();        // The height of the embed code
-$info->aspectRatio();   // The aspect ratio (width / height)
+$embed->code();          // The code to embed the image, video, etc
+$embed->width();         // The width of the embed code
+$embed->height();        // The height of the embed code
+$embed->aspectRatio();   // The aspect ratio (width / height)
 
-$info->authorName();    // The resource author
-$info->authorUrl();     // The author url
+$embed->authorName();    // The resource author
+$embed->authorUrl();     // The author url
 
-$info->providerName();  // The provider name of the page (Youtube, Twitter, Instagram, etc)
-$info->providerUrl();   // The provider url
-$info->providerIcons(); // All provider icons found in the page
-$info->providerIcon();  // The icon choosen as main icon
+$embed->providerName();  // The provider name of the page (Youtube, Twitter, Instagram, etc)
+$embed->providerUrl();   // The provider url
+$embed->providerIcon();  // The main icon found in the page
 
-$info->publishedDate(); // The published date of the resource
-$info->license();       // The license url of the resource
-$info->linkedData();    // The linked-data info (http://json-ld.org/)
-$info->feeds();         // The RSS/Atom feeds
+$embed->publishedDate(); // The published date of the resource
+$embed->license();       // The license url of the resource
+$embed->feeds();         // The RSS/Atom feeds
 ```
 
 A global site method is available to request embed data  `$site->getEmbedData($url)`).
@@ -115,13 +97,13 @@ $site->getEmbedData($url);
 
 <br/>
 
-## 5. License
+## 4. License
 
 MIT
 
 <br/>
 
-## 6. Credits
+## 5. Credits
 
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
