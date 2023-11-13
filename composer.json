@@ -3,6 +3,7 @@
     "description": "Embed field for Kirby 3",
     "type": "kirby-plugin",
     "license": "MIT",
+    "version": "1.1.0", 
     "authors": [
         {
             "name": "Sylvain Julé",
