@@ -17,6 +17,9 @@ export default {
                 this.emitInput(value)
                 return false;
             }
+            if(value.includes('https://www.instagram.com')) {
+                value = value.split('?')[0].replace(/\/$/, "");
+            }
 
             this.$emit('startLoading')
             this.$api
