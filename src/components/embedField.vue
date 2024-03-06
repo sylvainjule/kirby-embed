@@ -65,7 +65,7 @@ export default {
             return this.hasMedia && this.media.providerName ? this.media.providerName.toLowerCase() : null
         },
         syncFailed() {
-            return this.inputValue != '' && this.isValidUrl(this.inputValue) && !this.hasMedia
+            return this.inputValue != '' && this.isEmbeddableUrl(this.inputValue) && !this.hasMedia
         },
         inputValue() {
             return this.value && this.value.input ? this.value.input : ''
@@ -85,7 +85,7 @@ export default {
         stopLoading() {
             this.loading = false
         },
-        isValidUrl(value) {
+        isEmbeddableUrl(value) {
             if(!isUrl(value)) return false
             if(this.provider && !matchProvider(value, this.provider)) return false
             return true
