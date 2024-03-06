@@ -1,6 +1,6 @@
 @import '_variables.scss';
 
-.k-input[data-theme="field"][data-type="embed"] {
+.k-embed-field {
     .k-input-icon {
         width: auto;
         .k-embed-infos {
@@ -31,12 +31,12 @@
                 }
                 &-synced, &-failed {
                     font-size: 0.8rem;
-                    padding: 3px 5px 3px 6px;
+                    padding: 2px 5px 2px 6px;
                     display: inline-block;
                     border-radius: 3px;
                 }
                 &-synced {
-                    background: #b9ca88;
+                    background: var(--color-green-300);
                     display: flex;
                     align-items: center;
                     .checkmark {
@@ -58,7 +58,7 @@
                     }
                 }
                 &-failed {
-                    background: #ffced3;
+                    background: var(--color-red-300);
                     display: flex;
                     align-items: center;
                     .cross {
