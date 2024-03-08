@@ -47,7 +47,7 @@ embed:
   provider: youtube
 ```
 
-If you are using this field in a structure field, it comes with a built-in preview. You can optionnaly set `icons: true` (default is `false`) to display some providers logos in this preview.
+If you are using this field in a structure field, it comes with a built-in preview. You can optionally set `icons: true` (default is `false`) to display some providers logos in this preview.
 
 ```yaml
 embed:
