@@ -47,6 +47,16 @@ embed:
   provider: youtube
 ```
 
+If you are using this field in a structure field, it comes with a built-in preview. You can optionnaly set `icons: true` (default is `false`) to display some providers logos in this preview.
+
+```yaml
+embed:
+  type: embed
+  icons: true
+```
+
+![embed-icons](https://github.com/sylvainjule/kirby-embed/assets/14079751/ea26df07-005b-4f70-816d-f0e068da4ba4)
+
 The field also has all the `url` field's options, except those which wouldn't make much sense for such a plugin (`default` for example), won't fetch anything in the backstage.
 
 <br/>

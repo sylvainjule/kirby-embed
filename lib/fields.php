@@ -7,6 +7,9 @@ return array(
             'provider' > function($provider = null) {
                 return $provider;
             },
+            'icons' > function($icons = false) {
+                return $icons;
+            },
         ),
         'computed' => array(
             'value' => function() {

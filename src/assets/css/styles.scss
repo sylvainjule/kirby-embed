@@ -118,7 +118,7 @@
         background: $color-light url($pattern);
         opacity: 0.45;
     }
-    &[data-provider=youtube],  
+    &[data-provider=youtube],
     &[data-provider=vimeo] {
         .preview-content {
             padding: 0;
@@ -131,14 +131,13 @@
     }
 }
 
-.k-embed-field-preview-icon {
-    background: #b9ca88;
-    width: 18px;
-    height: 18px;
-    line-height: 18px;
-    border-radius: 50%;
-    display: inline-block;
-    font-size: .75em;
-    margin-left: .5em;
-    text-align: center;
+.k-embed-field-preview {
+    padding: 0.375rem var(--table-cell-padding);
+    &-inner {
+        overflow: hidden;
+    }
+    .k-embed-icon {
+        --fit: cover;
+        --back: var(--pattern);
+    }
 }
