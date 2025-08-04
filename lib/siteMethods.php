@@ -1,5 +1,8 @@
 <?php
 
+use Embed\Http\Crawler;
+use Embed\Http\CurlClient;
+
 return array(
     'getEmbedData' => function ($url = '') {
         $response = [];
@@ -10,7 +13,15 @@ return array(
         } 
         else {
             try {
-                $embed = new Embed\Embed();
+                // $embed = new Embed\Embed();
+
+                // initialize with a custom client, fixes #22
+                $client = new CurlClient();
+                $client->setSettings([
+                    'ignored_errors' => [23]
+                ]);
+                $embed = new Embed\Embed(new Crawler($client));
+
                 $embed = $embed->get($url);
 
                 $response['status'] = 'success';
