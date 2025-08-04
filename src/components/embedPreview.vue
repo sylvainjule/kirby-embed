@@ -25,7 +25,7 @@ export default {
             return Object.keys(this.value.media).length && this.value.media.code !== null
         },
         iconSrc() {
-            return this.$panel.$urls.site +'/media/plugins/sylvainjule/embed/svg/'+ this.providerIcon;
+            return this.$panel.urls.site +'/media/plugins/sylvainjule/embed/svg/'+ this.providerIcon;
         },
         providerIcon() {
             if(this.isSynced) {
