@@ -3,6 +3,9 @@
 @include_once __DIR__ . '/vendor/autoload.php';
 
 Kirby::plugin('sylvainjule/embed', [
+    'options' => [
+        'nocookie' => false,
+    ],
 	'fields'       => require_once __DIR__ . '/lib/fields.php',
     'fieldMethods' => require_once __DIR__ . '/lib/fieldMethods.php',
     'siteMethods'  => require_once __DIR__ . '/lib/siteMethods.php',

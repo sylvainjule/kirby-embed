@@ -11,9 +11,10 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 - [1. Installation](#1-installation)
 - [2. Blueprint usage](#2-blueprint-usage)
-- [3. Front-end usage](#3-front-end-usage)
-- [4. License](#4-license)
-- [5. Credits](#5-credits)
+- [3. Options](#3-options)
+- [4. Front-end usage](#4-front-end-usage)
+- [5. License](#5-license)
+- [6. Credits](#6-credits)
 
 ## 1. Installation
 
@@ -61,7 +62,23 @@ The field also has all the `url` field's options, except those which wouldn't ma
 
 <br/>
 
-## 3. Front-end usage
+## 3. Options
+
+### 3.1. `nocookie`
+
+Use privacy-enhanced URLs whenever possible (default: `false`). If set to `true`:
+- `youtube.com` domain will be replaced by `youtube-nocookie.com` in the saved embed code
+- `vimeo.com` iframes will have a `dnt=1`parameter added in the saved embed code
+
+In your `config.php` file:
+
+```
+'sylvainjule.embed.nocookie' => true
+````
+
+<br/>
+
+## 4. Front-end usage
 
 The plugin provides a `->toEmbed()` method, which is useful to get all the stored data of the embed (its html code, and a few other informations detailed below).
 
@@ -110,13 +127,13 @@ $site->getEmbedData($url);
 
 <br/>
 
-## 4. License
+## 5. License
 
 MIT
 
 <br/>
 
-## 5. Credits
+## 6. Credits
 
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 

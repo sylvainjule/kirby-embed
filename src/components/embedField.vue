@@ -41,6 +41,7 @@ export default {
     },
     props: {
         provider: String,
+        nocookie: Boolean,
     },
     created() {
         if(this.value && this.value.media && this.hasLength(this.value.media)) {
@@ -87,14 +88,7 @@ export default {
                 .get('kirby-embed/get-data', { url: value })
                 .then(response => {
                     if(response['status'] == 'success' && response['data']) {
-                        if(response['data']['providerName'] == 'Vimeo') {
-                            let iframe = response['data']['code']
-                                iframe = this.htmlToElement(iframe)
-                                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
-
-                            response['data']['code'] = iframe.outerHTML
-                        }
-                        this.media = response['data']
+                        this.media = this.processResponseData(response)
                     }
                     else {
                         this.media = {}
@@ -106,6 +100,35 @@ export default {
                     this.media = {}
                     this.emitInput(value)
                 })
+        },
+        processResponseData(response) {
+            let providerName = response['data']['providerName']
+
+            if(providerName == 'Vimeo') {
+                let iframe = response['data']['code']
+                    iframe = this.htmlToElement(iframe)
+                    iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+
+                response['data']['code'] = iframe.outerHTML
+            }
+
+            if(this.nocookie) {
+                if(providerName == 'YouTube') {
+                    response['data']['code'] = response['data']['code'].replace('youtube.com', 'youtube-nocookie.com')
+                }
+                else if(providerName == 'Vimeo') {
+                    let iframe = response['data']['code']
+                        iframe = this.htmlToElement(iframe)
+
+                    let url = new URL(iframe.getAttribute('src'))
+                        url.searchParams.append('dnt', 1)
+                        iframe.setAttribute('src', url)
+
+                    response['data']['code'] = iframe.outerHTML
+                }
+            }
+
+            return response['data']
         },
         emitInput(value) {
             this.$emit('input', { input: value, media: this.media })
