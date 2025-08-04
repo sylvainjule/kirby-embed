@@ -1,5 +1,11 @@
+# Searching MAINTAINER
+
+After 11 years since the first version of Embed was released, I don't have the time or motivation to continue maintaining this project. I rarely write PHP code and am not aware of the latest features of PHP. If anyone wants to continue maintaining and evolving this library, please open an issue or contact me.
+
+Meanwhile, I'll continue accepting PR from the community (I don't want this project to die), but won't be actively working on improving it. Thanks!
 
 # Embed
+
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-packagist]
@@ -22,7 +28,7 @@ Requirements:
 
 ## Online demo
 
-http://oscarotero.com/embed/demo
+Run `php -S localhost:8888 demo/index.php`
 
 ## Video Tutorial
  [<img src="https://img.youtube.com/vi/4YCLRpKY1cs/0.jpg" width="250">](https://youtu.be/4YCLRpKY1cs)
@@ -58,7 +64,7 @@ $info->image; //The thumbnail or main image
 $info->code->html; //The code to embed the image, video, etc
 $info->code->width; //The exact width of the embed code (if exists)
 $info->code->height; //The exact height of the embed code (if exists)
-$info->code->ratio; //The aspect ratio (width/height)
+$info->code->ratio; //The percentage of height / width to emulate the aspect ratio using paddings.
 
 $info->authorName; //The resource author
 $info->authorUrl; //The author url
