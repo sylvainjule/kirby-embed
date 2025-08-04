@@ -19,7 +19,7 @@ export default {
     },
     computed: {
         url() {
-            return this.value.input.replace(/^\/\/|^.*?:\/\//, '')
+            return this.value.input.replace(/^\/\/|^.*?:\/\//, '').replace('www.', '')
         },
         isSynced() {
             return Object.keys(this.value.media).length && this.value.media.code !== null
