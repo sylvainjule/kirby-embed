@@ -3,7 +3,7 @@
 Embed field for Kirby 3, 4 and 5. Display embeds from various media sites (Youtube, Vimeo, Souncloud, Instagram, etc.) by only providing the url to the medium.
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
-![embed-screenshot](https://user-images.githubusercontent.com/14079751/64260995-163b3380-cf2c-11e9-85dc-77f0b8a79a1f.jpg)
+![embed-screenshot](https://github.com/user-attachments/assets/65bc878e-d20d-4f4d-aec7-2f20e9b0aa71)
 
 ## Overview
 
