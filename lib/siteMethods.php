@@ -2,13 +2,14 @@
 
 use Embed\Http\Crawler;
 use Embed\Http\CurlClient;
+use Kirby\Toolkit\V;
 use SylvainJule\Embed as EmbedHelper;
 
 return array(
-    'getEmbedData' => function ($url = '') {
+    'getEmbedData' => function($url = '') {
         $response = [];
 
-        if (!V::url($url)) {
+        if(!V::url($url)) {
             $response['status'] = 'error';
             $response['error']  = 'The $url variable is not an url';
         } 
@@ -102,7 +103,7 @@ return array(
 
                 $response['data']['code'] = EmbedHelper::applyPrivacy($response['data']['code']);
             } 
-            catch (Exception $e) {
+            catch(Exception $e) {
                 $response['status'] = 'error';
                 $response['error']  = $e->getMessage();
             }

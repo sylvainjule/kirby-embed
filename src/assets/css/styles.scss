@@ -85,6 +85,13 @@
                     }
                 }
             }
+            .k-embed-type-icon {
+                width: 2.5em;
+                height: 2.5em;
+                display: grid;
+                place-items: center;
+                flex-shrink: 0;
+            }
         }
         &-button {
             width: 2.5em;
@@ -137,23 +144,5 @@
 .k-panel[data-theme="dark"] {
     .preview-background {
         opacity: .2;
-    }
-}
-
-.k-embed-field-preview {
-    padding: 0.375rem var(--table-cell-padding);
-    &-inner {
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-        padding-right: .5rem;
-        font-size: var(--font-size-tiny);
-        background: light-dark(var(--bubble-back), rgba(255, 255, 255, .1));
-        color: light-dark(black, white);
-    }
-    .k-embed-icon {
-        --fit: cover;
-        --back: var(--pattern);
     }
 }

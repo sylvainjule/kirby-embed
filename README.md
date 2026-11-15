@@ -1,6 +1,6 @@
 # Kirby Embed
 
-Embed field for Kirby 3, 4 and 5. Display embeds from various media sites (Youtube, Vimeo, Souncloud, Instagram, etc.) by only providing the url to the medium.
+Embed field for Kirby. Display embeds from various media sites (Youtube, Vimeo, Souncloud, Instagram, etc.) by only providing the url to the medium.
 Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 ![embed-screenshot](https://github.com/user-attachments/assets/65bc878e-d20d-4f4d-aec7-2f20e9b0aa71)
@@ -18,7 +18,7 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 ## 1. Installation
 
-> K3: up to 1.1.0, K4: up to 1.1.2, K5: 1.2.0+
+> K3: up to 1.1.0, K4: up to 1.1.2, K5: 1.2.1, K6: 2+.
 
 Download and copy this repository to ```/site/plugins/embed```
 
