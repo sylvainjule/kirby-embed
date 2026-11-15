@@ -6,7 +6,7 @@ export function isUrl(value) {
 
 export function matchProvider(value, provider) {
     const patterns = {
-        'youtube': /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/,
+        'youtube': /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/,
         'vimeo': /vimeo\.com\/([0-9]+)/,
         'flickr': /^.*(flickr\.com)\/(.*)/,
         'soundcloud': /^.*(soundcloud\.com|snd\.sc)\/(.*)/,
