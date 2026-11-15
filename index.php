@@ -2,6 +2,10 @@
 
 @include_once __DIR__ . '/vendor/autoload.php';
 
+if(!class_exists('SylvainJule\Embed')) {
+    require_once __DIR__ . '/lib/embed.php';
+}
+
 Kirby::plugin('sylvainjule/embed', [
     'options' => [
         'nocookie' => false,

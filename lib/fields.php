@@ -16,9 +16,6 @@ return array(
                 $yaml = Yaml::decode($this->value);
                 return count($yaml) ? $yaml : $this->value;
             },
-            'nocookie' => function() {
-                return option('sylvainjule.embed.nocookie', false);
-            }
         ),
         'validations' => null
     )
