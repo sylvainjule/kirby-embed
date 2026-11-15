@@ -4,10 +4,10 @@ return array(
     'embed' => array(
         'extends' => 'url',
         'props' => array(
-            'provider' > function($provider = null) {
+            'provider' => function($provider = null) {
                 return $provider;
             },
-            'icons' > function($icons = false) {
+            'icons' => function($icons = false) {
                 return $icons;
             },
         ),
