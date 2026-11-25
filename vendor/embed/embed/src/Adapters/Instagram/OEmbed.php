@@ -8,15 +8,11 @@ use Psr\Http\Message\UriInterface;
 
 class OEmbed extends Base
 {
-    const ENDPOINT = 'https://graph.facebook.com/v8.0/instagram_oembed';
+    const ENDPOINT = 'https://graph.facebook.com/v25.0/instagram_oembed';
 
-    protected function detectEndpoint(): ?UriInterface
+    protected function detectEndpoint(): UriInterface
     {
         $token = $this->extractor->getSetting('instagram:token');
-
-        if (!$token) {
-            return null;
-        }
 
         $uri = $this->extractor->getUri();
         if (strpos($uri->getPath(), 'login') !== false) {
@@ -24,7 +20,7 @@ class OEmbed extends Base
         }
 
         $queryParameters = $this->getOembedQueryParameters((string) $uri);
-        $queryParameters['access_token'] = $token;
+        if(is_string($token)) $queryParameters['access_token'] = $token;
 
         return $this->extractor->getCrawler()
             ->createUri(self::ENDPOINT)

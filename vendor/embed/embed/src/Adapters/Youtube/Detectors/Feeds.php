@@ -8,6 +8,9 @@ use function Embed\getDirectory;
 use function Embed\matchPath;
 use Psr\Http\Message\UriInterface;
 
+/**
+ * @extends Detector<\Embed\Adapters\Youtube\Extractor>
+ */
 class Feeds extends Detector
 {
     /**
@@ -15,10 +18,13 @@ class Feeds extends Detector
      */
     public function detect(): array
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $result = parent::detect();
+        return $result !== [] ? $result : $this->fallback();
     }
 
+    /**
+     * @return UriInterface[]
+     */
     private function fallback(): array
     {
         $uri = $this->extractor->getUri();

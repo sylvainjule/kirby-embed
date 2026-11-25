@@ -3,9 +3,11 @@ declare(strict_types = 1);
 
 namespace Embed;
 
+use Embed\Http\BlockedRequestException;
 use Embed\Http\Crawler;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 
 class Embed
 {
@@ -14,13 +16,13 @@ class Embed
 
     public function __construct(?Crawler $crawler = null, ?ExtractorFactory $extractorFactory = null)
     {
-        $this->crawler = $crawler ?: new Crawler();
-        $this->extractorFactory = $extractorFactory ?: new ExtractorFactory();
+        $this->crawler = $crawler !== null ? $crawler : new Crawler();
+        $this->extractorFactory = $extractorFactory !== null ? $extractorFactory : new ExtractorFactory();
     }
 
     public function get(string $url): Extractor
     {
-        $request = $this->crawler->createRequest('GET', $url);
+        $request = $this->crawler->createRequest('GET', $this->normalizeUri($url));
         $response = $this->crawler->sendRequest($request);
 
         return $this->extract($request, $response);
@@ -32,7 +34,7 @@ class Embed
     public function getMulti(string ...$urls): array
     {
         $requests = array_map(
-            fn ($url) => $this->crawler->createRequest('GET', $url),
+            fn ($url) => $this->crawler->createRequest('GET', $this->normalizeUri($url)),
             $urls
         );
 
@@ -41,7 +43,10 @@ class Embed
         $return = [];
 
         foreach ($responses as $k => $response) {
-            $return[] = $this->extract($requests[$k], $responses[$k]);
+            /** @phpstan-ignore instanceof.alwaysTrue (defensive check for error handling) */
+            if ($response instanceof ResponseInterface) {
+                $return[] = $this->extract($requests[$k], $response);
+            }
         }
 
         return $return;
@@ -57,14 +62,25 @@ class Embed
         return $this->extractorFactory;
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     */
     public function setSettings(array $settings): void
     {
         $this->extractorFactory->setSettings($settings);
     }
 
+    private function normalizeUri(string $url): UriInterface
+    {
+        return $this->extractorFactory->normalizeUri($this->crawler->createUri($url));
+    }
+
     private function extract(RequestInterface $request, ResponseInterface $response, bool $redirect = true): Extractor
     {
-        $uri = $this->crawler->getResponseUri($response) ?: $request->getUri();
+        $uri = $this->crawler->getResponseUri($response);
+        if ($uri === null) {
+            $uri = $request->getUri();
+        }
 
         $extractor = $this->extractorFactory->createExtractor($uri, $request, $response, $this->crawler);
 
@@ -72,18 +88,30 @@ class Embed
             return $extractor;
         }
 
-        $request = $this->crawler->createRequest('GET', $extractor->redirect);
-        $response = $this->crawler->sendRequest($request);
+        // Magic property access returns mixed, but we know it's ?UriInterface from Redirect detector
+        $redirectUri = $extractor->redirect;
+        if (!($redirectUri instanceof \Psr\Http\Message\UriInterface)) {
+            return $extractor;
+        }
+
+        $request = $this->crawler->createRequest('GET', (string) $redirectUri);
+        try {
+            $response = $this->crawler->sendRequest($request);
+        } catch (BlockedRequestException $exception) {
+            return $extractor;
+        }
 
         return $this->extract($request, $response, false);
     }
 
     private function mustRedirect(Extractor $extractor): bool
     {
-        if (!empty($extractor->getOembed()->all())) {
+        if ($extractor->getOEmbed()->all() !== []) {
             return false;
         }
 
-        return $extractor->redirect !== null;
+        // Magic property access returns mixed, but we know it's ?UriInterface from Redirect detector
+        $redirectUri = $extractor->redirect;
+        return $redirectUri instanceof \Psr\Http\Message\UriInterface;
     }
 }

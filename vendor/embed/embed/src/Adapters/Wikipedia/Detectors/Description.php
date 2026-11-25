@@ -5,13 +5,16 @@ namespace Embed\Adapters\Wikipedia\Detectors;
 
 use Embed\Detectors\Description as Detector;
 
+/**
+ * @extends Detector<\Embed\Adapters\Wikipedia\Extractor>
+ */
 class Description extends Detector
 {
     public function detect(): ?string
     {
         $api = $this->extractor->getApi();
 
-        return $api->str('extract')
-            ?: parent::detect();
+        $result = $api->str('extract');
+        return (is_string($result) && trim($result) !== '') ? $result : parent::detect();
     }
 }

@@ -3,8 +3,13 @@ declare(strict_types = 1);
 
 namespace Embed\Detectors;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class ProviderName extends Detector
 {
+    /** @var string[] */
     private static array $suffixes;
 
     public function detect(): string
@@ -12,19 +17,36 @@ class ProviderName extends Detector
         $oembed = $this->extractor->getOEmbed();
         $metas = $this->extractor->getMetas();
 
-        return $oembed->str('provider_name')
-            ?: $metas->str(
-                'og:site_name',
-                'dcterms.publisher',
-                'publisher',
-                'article:publisher'
-            )
-            ?: ucfirst($this->fallback());
+        $result = $oembed->str('provider_name');
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        $result = $metas->str(
+            'og:site_name',
+            'dcterms.publisher',
+            'publisher',
+            'article:publisher'
+        );
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        // Names that sites give to themselves when added to a home screen
+        $result = $metas->str('application-name', 'apple-mobile-web-app-title');
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        return ucfirst($this->fallback());
     }
 
     private function fallback(): string
     {
         $host = $this->extractor->getUri()->getHost();
+
+        // "www" is never the name of a site, even under suffixes like gov.pt
+        $host = (string) preg_replace('/^www\d*\./i', '', $host);
 
         $host = array_reverse(explode('.', $host));
 
@@ -45,10 +67,15 @@ class ProviderName extends Detector
         }
     }
 
+    /**
+     * @return string[]
+     */
     private static function getSuffixes(): array
     {
         if (!isset(self::$suffixes)) {
-            self::$suffixes = require dirname(__DIR__).'/resources/suffix.php';
+            /** @var string[] */
+            $suffixes = require dirname(__DIR__).'/resources/suffix.php';
+            self::$suffixes = $suffixes;
         }
 
         return self::$suffixes;

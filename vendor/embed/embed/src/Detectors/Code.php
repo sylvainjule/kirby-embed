@@ -6,14 +6,32 @@ namespace Embed\Detectors;
 use Embed\EmbedCode;
 use function Embed\html;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class Code extends Detector
 {
+    private const HLS_TYPES = ['application/x-mpegurl', 'application/vnd.apple.mpegurl'];
+
     public function detect(): ?EmbedCode
     {
-        return $this->detectFromEmbed()
-            ?: $this->detectFromOpenGraph()
-            ?: $this->detectFromTwitter()
-            ?: $this->detectFromContentType();
+        $result = $this->detectFromEmbed();
+        if ($result !== null) {
+            return $result;
+        }
+
+        $result = $this->detectFromOpenGraph();
+        if ($result !== null) {
+            return $result;
+        }
+
+        $result = $this->detectFromTwitter();
+        if ($result !== null) {
+            return $result;
+        }
+
+        return $this->detectFromContentType();
     }
 
     private function detectFromEmbed(): ?EmbedCode
@@ -21,8 +39,16 @@ class Code extends Detector
         $oembed = $this->extractor->getOEmbed();
         $html = $oembed->html('html');
 
-        if (!$html) {
-            return null;
+        if ($html === null) {
+            return $this->detectFromOEmbedPhoto();
+        }
+
+        if ($this->extractor->getSetting('mastodon:iframe') === true) {
+            $iframe = $this->detectMastodonIframe($html, $oembed->int('width'));
+
+            if ($iframe !== null) {
+                return $iframe;
+            }
         }
 
         return new EmbedCode(
@@ -32,27 +58,110 @@ class Code extends Detector
         );
     }
 
+    /**
+     * Mastodon's oEmbed html is a blockquote that needs embed.js to become
+     * an iframe. With the "mastodon:iframe" setting, build the iframe directly
+     * from its data-embed-url, only when it points to the same host.
+     */
+    private function detectMastodonIframe(string $html, ?int $width): ?EmbedCode
+    {
+        if (preg_match('/<blockquote\b[^>]*\bclass="[^"]*\bmastodon-embed\b[^"]*"[^>]*>/i', $html, $tag) !== 1) {
+            return null;
+        }
+
+        if (preg_match('/\bdata-embed-url="([^"]+)"/i', $tag[0], $match) !== 1) {
+            return null;
+        }
+
+        $src = html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5);
+        $parts = parse_url($src);
+
+        if (
+            !is_array($parts)
+            || ($parts['scheme'] ?? '') !== 'https'
+            || !isset($parts['host'])
+            || strtolower($parts['host']) !== strtolower($this->extractor->getUri()->getHost())
+            || preg_match('#/embed$#', $parts['path'] ?? '') !== 1
+        ) {
+            return null;
+        }
+
+        if ($width === null || $width <= 0) {
+            $width = 400;
+        }
+
+        $code = html('iframe', [
+            'src' => $src,
+            'class' => 'mastodon-embed',
+            'style' => 'max-width: 100%; border: 0',
+            'width' => $width,
+            'sandbox' => 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
+            'allowfullscreen' => 'allowfullscreen',
+            'loading' => 'lazy',
+        ]);
+
+        return new EmbedCode($code, $width, null);
+    }
+
+    private function detectFromOEmbedPhoto(): ?EmbedCode
+    {
+        $oembed = $this->extractor->getOEmbed();
+
+        if ($oembed->str('type') !== 'photo') {
+            return null;
+        }
+
+        $url = $oembed->url('url');
+
+        if ($url === null) {
+            return null;
+        }
+
+        $width = $oembed->int('width');
+        $height = $oembed->int('height');
+
+        $code = html('img', [
+            'src' => $url,
+            'alt' => $oembed->str('title'),
+            'width' => $width,
+            'height' => $height,
+        ]);
+
+        return new EmbedCode($code, $width, $height);
+    }
+
     private function detectFromOpenGraph(): ?EmbedCode
     {
         $metas = $this->extractor->getMetas();
 
         $url = $metas->url('og:video:secure_url', 'og:video:url', 'og:video');
 
-        if (!$url) {
+        if ($url === null) {
             return null;
         }
 
-        if (!($type = pathinfo($url->getPath(), PATHINFO_EXTENSION))) {
+        $type = pathinfo($url->getPath(), PATHINFO_EXTENSION);
+        if ($type === '') {
             $type = $metas->str('og:video_type');
+        }
+
+        // HLS playlists cannot be used as an iframe src. og:video:type is only
+        // read for this check, so existing pages keep their current code.
+        $declaredType = strtolower((string) $metas->str('og:video:type'));
+        if (strtolower($type ?? '') === 'm3u8' || in_array($declaredType, self::HLS_TYPES, true)) {
+            return null;
         }
 
         $width = $metas->int('twitter:player:width');
         $height = $metas->int('twitter:player:height');
 
-        switch ($type) {
+        switch ($type !== null ? strtolower($type) : null) {
             case 'swf':
             case 'application/x-shockwave-flash':
                 return null; //Ignore flash
+            case 'application/x-mpegurl':
+            case 'application/vnd.apple.mpegurl':
+                return null; //HLS playlists cannot be used as an iframe src
             case 'mp4':
             case 'ogg':
             case 'ogv':
@@ -87,7 +196,7 @@ class Code extends Detector
 
         $url = $metas->url('twitter:player');
 
-        if (!$url) {
+        if ($url === null) {
             return null;
         }
 
@@ -105,19 +214,20 @@ class Code extends Detector
         return new EmbedCode($code, $width, $height);
     }
 
-    private function detectFromContentType()
+    private function detectFromContentType(): ?EmbedCode
     {
         if (!$this->extractor->getResponse()->hasHeader('content-type')) {
             return null;
         }
 
         $contentType = $this->extractor->getResponse()->getHeader('content-type')[0];
-        $isBinary = !preg_match('/(text|html|json)/', strtolower($contentType));
+        $isBinary = preg_match('/(text|html|json)/', strtolower($contentType)) !== 1;
         if (!$isBinary) {
             return null;
         }
 
-        $url = $this->extractor->getRequest()->getUri();
+        // The final URL, so a file behind a redirect is embedded from where it is.
+        $url = $this->extractor->getUri();
 
         if (strpos($contentType, 'video/') === 0 || $contentType === 'application/mp4') {
             $code = html('video', [

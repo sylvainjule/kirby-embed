@@ -7,12 +7,15 @@ use Embed\Detectors\Code as Detector;
 use Embed\EmbedCode;
 use function Embed\html;
 
+/**
+ * @extends Detector<\Embed\Adapters\Gist\Extractor>
+ */
 class Code extends Detector
 {
     public function detect(): ?EmbedCode
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $parentResult = parent::detect();
+        return $parentResult !== null ? $parentResult : $this->fallback();
     }
 
     private function fallback(): ?EmbedCode
@@ -22,10 +25,12 @@ class Code extends Detector
         $code = $api->html('div');
         $stylesheet = $api->str('stylesheet');
 
-        if ($code && $stylesheet) {
+        if ($code !== null && $stylesheet !== null) {
             return new EmbedCode(
                 html('link', ['rel' => 'stylesheet', 'href' => $stylesheet]).$code
             );
         }
+
+        return null;
     }
 }

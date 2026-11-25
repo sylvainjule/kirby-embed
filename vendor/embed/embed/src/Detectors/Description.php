@@ -3,6 +3,10 @@ declare(strict_types = 1);
 
 namespace Embed\Detectors;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class Description extends Detector
 {
     public function detect(): ?string
@@ -11,18 +15,26 @@ class Description extends Detector
         $metas = $this->extractor->getMetas();
         $ld = $this->extractor->getLinkedData();
 
-        return $oembed->str('description')
-            ?: $metas->str(
-                'og:description',
-                'twitter:description',
-                'lp:description',
-                'description',
-                'article:description',
-                'dcterms.description',
-                'sailthru.description',
-                'excerpt',
-                'article.summary'
-            )
-            ?: $ld->str('description');
+        $result = $oembed->str('description');
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        $result = $metas->str(
+            'og:description',
+            'twitter:description',
+            'lp:description',
+            'description',
+            'article:description',
+            'dcterms.description',
+            'sailthru.description',
+            'excerpt',
+            'article.summary'
+        );
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        return $ld->str('description');
     }
 }

@@ -6,15 +6,23 @@ namespace Embed\Adapters\Archive\Detectors;
 use DateTime;
 use Embed\Detectors\PublishedTime as Detector;
 
+/**
+ * @extends Detector<\Embed\Adapters\Archive\Extractor>
+ */
 class PublishedTime extends Detector
 {
     public function detect(): ?DateTime
     {
         $api = $this->extractor->getApi();
 
-        return $api->time('metadata', 'publicdate')
-            ?: $api->time('metadata', 'addeddate')
-            ?: $api->time('metadata', 'date')
-            ?: parent::detect();
+        $fields = ['publicdate', 'addeddate', 'date'];
+        foreach ($fields as $field) {
+            $result = $api->time('metadata', $field);
+            if ($result !== null) {
+                return $result;
+            }
+        }
+
+        return parent::detect();
     }
 }

@@ -3,7 +3,7 @@
     "description": "Embed field for Kirby",
     "type": "kirby-plugin",
     "license": "MIT",
-    "version": "1.2.1", 
+    "version": "1.2.2", 
     "authors": [
         {
             "name": "Sylvain Julé",
@@ -11,12 +11,16 @@
         }
     ],
     "require": {
-        "getkirby/composer-installer": "^1.1",
-        "guzzlehttp/psr7": "^2.6",
-        "embed/embed": "^4.4"
+        "getkirby/composer-installer": "^1.2",
+        "guzzlehttp/psr7": "^2.13",
+        "embed/embed": "^4.7",
+        "sweetrdf/json-ld": "^1.4.3"
     },
     "extra": {
-        "installer-name": "embed"
+        "installer-name": "embed",
+        "kirby": {
+            "compatible": "^5.0"
+        }
     },
     "minimum-stability": "beta",
     "config": {

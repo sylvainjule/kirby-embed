@@ -8,27 +8,23 @@ use Psr\Http\Message\UriInterface;
 
 class OEmbed extends Base
 {
-    const ENDPOINT_PAGE = 'https://graph.facebook.com/v11.0/oembed_page';
-    const ENDPOINT_POST = 'https://graph.facebook.com/v11.0/oembed_post';
-    const ENDPOINT_VIDEO = 'https://graph.facebook.com/v11.0/oembed_video';
+    const ENDPOINT_PAGE = 'https://graph.facebook.com/v25.0/oembed_page';
+    const ENDPOINT_POST = 'https://graph.facebook.com/v25.0/oembed_post';
+    const ENDPOINT_VIDEO = 'https://graph.facebook.com/v25.0/oembed_video';
 
-    protected function detectEndpoint(): ?UriInterface
+    protected function detectEndpoint(): UriInterface
     {
         $token = $this->extractor->getSetting('facebook:token');
-
-        if (!$token) {
-            return null;
-        }
 
         $uri = $this->extractor->getUri();
         if (strpos($uri->getPath(), 'login') !== false) {
             parse_str($uri->getQuery(), $params);
-            if (!empty($params['next'])) {
+            if (isset($params['next']) && is_string($params['next']) && $params['next'] !== '' && $params['next'] !== '0') {
                 $uri = $this->extractor->getCrawler()->createUri($params['next']);
             }
         }
         $queryParameters = $this->getOembedQueryParameters((string) $uri);
-        $queryParameters['access_token'] = $token;
+        if(is_string($token)) $queryParameters['access_token'] = $token;
 
         return $this->extractor->getCrawler()
             ->createUri($this->getEndpointByPath($uri->getPath()))
@@ -45,6 +41,7 @@ class OEmbed extends Base
         */
         if (strpos($path, '/video.php') === 0
             || strpos($path, '/videos/') !== false
+            || strpos($path, '/reel/') !== false
         ) {
             return self::ENDPOINT_VIDEO;
         }

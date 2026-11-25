@@ -10,7 +10,9 @@ use Psr\Http\Message\UriInterface;
 
 class ExtractorFactory
 {
+    /** @var class-string<Extractor> */
     private string $default = Extractor::class;
+    /** @var array<string, class-string<Extractor>> */
     private array $adapters = [
         'slides.com' => Adapters\Slides\Extractor::class,
         'pinterest.com' => Adapters\Pinterest\Extractor::class,
@@ -22,19 +24,31 @@ class ExtractorFactory
         'github.com' => Adapters\Github\Extractor::class,
         'wikipedia.org' => Adapters\Wikipedia\Extractor::class,
         'archive.org' => Adapters\Archive\Extractor::class,
-        'sassmeister.com' => Adapters\Sassmeister\Extractor::class,
         'facebook.com' => Adapters\Facebook\Extractor::class,
         'instagram.com' => Adapters\Instagram\Extractor::class,
         'imageshack.com' => Adapters\ImageShack\Extractor::class,
         'youtube.com' => Adapters\Youtube\Extractor::class,
+        'vimeo.com' => Adapters\Vimeo\Extractor::class,
         'twitch.tv' => Adapters\Twitch\Extractor::class,
+        'kick.com' => Adapters\Kick\Extractor::class,
         'bandcamp.com' => Adapters\Bandcamp\Extractor::class,
         'twitter.com' => Adapters\Twitter\Extractor::class,
         'x.com' => Adapters\Twitter\Extractor::class,
+        'bilibili.com' => Adapters\Bilibili\Extractor::class,
+        'youku.com' => Adapters\Youku\Extractor::class,
+        'tudou.com' => Adapters\Youku\Extractor::class,
+        'music.163.com' => Adapters\NetEase\Extractor::class,
+        'v.qq.com' => Adapters\TencentVideo\Extractor::class,
+        'drive.google.com' => Adapters\GoogleDrive\Extractor::class,
     ];
+    /** @var array<string, class-string<Detectors\Detector<Extractor>>> */
     private array $customDetectors = [];
+    /** @var array<string, mixed> */
     private array $settings;
 
+    /**
+     * @param array<string, mixed>|null $settings
+     */
     public function __construct(?array $settings = [])
     {
         $this->settings = $settings ?? [];
@@ -42,29 +56,14 @@ class ExtractorFactory
 
     public function createExtractor(UriInterface $uri, RequestInterface $request, ResponseInterface $response, Crawler $crawler): Extractor
     {
-        $host = $uri->getHost();
-        $class = $this->default;
+        $class = $this->getClass($uri);
 
-        foreach ($this->adapters as $adapterHost => $adapter) {
-            // Check if $host is the same domain as $adapterHost.
-            if ($host === $adapterHost) {
-                $class = $adapter;
-                break;
-            }
-
-            // Check if $host is a subdomain of $adapterHost.
-            if (substr($host, -strlen($adapterHost) - 1) === ".{$adapterHost}") {
-                $class = $adapter;
-                break;
-            }
-        }
-
-        /** @var Extractor $extractor */
         $extractor = new $class($uri, $request, $response, $crawler);
         $extractor->setSettings($this->settings);
 
-        foreach ($this->customDetectors as $name => $detector) {
-            $extractor->addDetector($name, new $detector($extractor));
+        foreach ($this->customDetectors as $name => $detectorClass) {
+            $detector = new $detectorClass($extractor);
+            $extractor->addDetector($name, $detector);
         }
 
         foreach ($extractor->createCustomDetectors() as $name => $detector) {
@@ -74,11 +73,49 @@ class ExtractorFactory
         return $extractor;
     }
 
+    /**
+     * Lets the adapter of the URL host rewrite the URL before it is requested.
+     */
+    public function normalizeUri(UriInterface $uri): UriInterface
+    {
+        $class = $this->getClass($uri);
+
+        return $class::normalizeUri($uri);
+    }
+
+    /**
+     * @return class-string<Extractor>
+     */
+    private function getClass(UriInterface $uri): string
+    {
+        $host = $uri->getHost();
+
+        foreach ($this->adapters as $adapterHost => $adapter) {
+            // Check if $host is the same domain as $adapterHost.
+            if ($host === $adapterHost) {
+                return $adapter;
+            }
+
+            // Check if $host is a subdomain of $adapterHost.
+            if (substr($host, -strlen($adapterHost) - 1) === ".{$adapterHost}") {
+                return $adapter;
+            }
+        }
+
+        return $this->default;
+    }
+
+    /**
+     * @param class-string<Extractor> $class
+     */
     public function addAdapter(string $pattern, string $class): void
     {
         $this->adapters[$pattern] = $class;
     }
 
+    /**
+     * @param class-string<Detectors\Detector<Extractor>> $class
+     */
     public function addDetector(string $name, string $class): void
     {
         $this->customDetectors[$name] = $class;
@@ -89,11 +126,17 @@ class ExtractorFactory
         unset($this->adapters[$pattern]);
     }
 
+    /**
+     * @param class-string<Extractor> $class
+     */
     public function setDefault(string $class): void
     {
         $this->default = $class;
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     */
     public function setSettings(array $settings): void
     {
         $this->settings = $settings;

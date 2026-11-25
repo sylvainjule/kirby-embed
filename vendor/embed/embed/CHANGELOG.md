@@ -4,6 +4,118 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.7.0] - 2026-11-23
+### Added
+- YouTube: `$info->image` is `maxresdefault.jpg` when the video page links it in `og:image`, instead of the oEmbed `hqdefault.jpg` with black bars [#535]
+- YouTube: the start (`t=` or `start=`) and end (`end=`) times of the URL are kept in the player URL, in seconds or in the `1m30s` format [#268]
+- Vimeo adapter: `$info->image` is the full size thumbnail instead of the one resized to the player width (like `_295x166`) [#391]
+- Google Drive adapter: shared files (`drive.google.com/file/d/<id>/view` and `drive.google.com/open?id=<id>`) get the `/preview` iframe of Drive's "Embed item" option. Files that need a login get no code [#408]
+- Tencent Video adapter: `v.qq.com/x/cover/<cid>/<vid>.html`, `v.qq.com/x/page/<vid>.html` and `v.qq.com/x/cover/<cid>.html?vid=<vid>` URLs get a `v.qq.com/txp/iframe/player.html` iframe built from the URL [#243]
+- Youku adapter: `play.tudou.com/v_show/id_<ID>.html` and other `tudou.com` URLs with the same path also get a `player.youku.com/embed` iframe [#243]
+- README section about the results that are specific to some sites, and how to get `null` instead of the provider name fallback [#462]
+- README note about Reddit: cloud and datacenter IPs often get 403; from a residential IP, oEmbed still provides title, author and code, but not image or description [#521]
+
+### Changed
+- The provider name is also read from the `application-name` and `apple-mobile-web-app-title` metas before falling back to the domain name, and the fallback skips `www` (`www.gov.pt` was "Www") [#462]
+
+## [4.6.3] - 2026-11-20
+### Fixed
+- A `Referer` header set by the caller (for example with `addDefaultHeaders()`) is kept when a request follows redirects, instead of being replaced by the previous URL. Vimeo videos with domain-level privacy need it to return their title, thumbnail and other metadata [#377] [#567]
+
+### Added
+- README section about Vimeo videos with domain-level privacy: how to send the `Referer` of an allowed domain, how to read Vimeo's `domain_status_code` and how to tell when the oEmbed request returned no data [#377] [#567]
+
+## [4.6.2] - 2026-11-06
+### Added
+- README section about the HTTP layer: how `Crawler`, `CurlClient` and `CurlDispatcher` fit together, the v4 setting for each v3 `CURLOPT_*` option, extra headers, and how to wrap the client instead of extending the dispatcher [#445]
+
+## [4.6.1] - 2026-10-30
+### Fixed
+- X/Twitter status URLs get their oEmbed from `publish.twitter.com` with the status URL that was requested, even when logged-out visitors are redirected to `x.com/home`, the `x.com/x/migrate` form or a login wall. `mobile.twitter.com` and `/statuses/` URLs are accepted, query strings like `?s=20` are dropped, and the title is no longer "x.com" [#520] [#536]
+- A `<` that cannot open a tag (like in `Brytere =<250A`) no longer makes the rest of a title or description disappear [#372]
+- Image and other URLs with inner spaces (like `1024-576  logo.jpg`) keep them, encoded as `%20`, instead of being collapsed [#485]
+- Images and other media detected by content type use the final URL after redirects as their `src` [#524]
+- On PHP 8, curl handles (and their file descriptors) are released as soon as a request finishes, instead of waiting for the garbage collector, so long running workers no longer hit "Too many open files" [#283]
+
+## [4.6.0] - 2026-10-30
+### Added
+- `mastodon:iframe` setting (off by default). Mastodon oEmbed html (`blockquote.mastodon-embed` with `data-embed-url`) becomes a sandboxed `<iframe>` to the post's `/embed` page, so no `embed.js` is needed. Only same-host `https` embed URLs are used
+- Bilibili adapter: `bilibili.com/video/BV...` and `av...` URLs (also `b23.tv` short links) get a `player.bilibili.com` iframe built from the URL. The title, description and image of Bilibili's error pages ("出错啦!" and "视频去哪了呢？") are ignored, and so is a description template that was never filled [#243]
+- Youku adapter: `v.youku.com/v_show/id_<ID>.html` URLs get a `player.youku.com/embed` iframe built from the URL [#243]
+- NetEase Music adapter: songs, albums and playlists on `music.163.com` get an `outchain/player` iframe, and the author is read from the description. URLs with a `#/` route are requested without it. MV pages (`/mv?id=` and `/#/mv?id=`) get metadata only, because NetEase has no official embeddable MV player [#243]
+- `Extractor::normalizeUri()`, used by adapters to rewrite a URL before it is requested
+
+## [4.5.4] - 2026-10-30
+### Security
+- TLS verification is on by default. `CurlClient` now sends `CURLOPT_SSL_VERIFYPEER` true and `CURLOPT_SSL_VERIFYHOST` 2 unless told otherwise, so self-signed, expired and wrong-host certificates are rejected (curl error 60). Before, both checks were off when the settings were missing [#575]
+- A `null` `ssl_verify_peer` or `ssl_verify_host` now means the default (verification on). Explicit `0`, `false`, `'0'` and `''` still disable it
+
+To disable verification, which is not recommended, pass the existing settings:
+
+```php
+$client = new Embed\Http\CurlClient();
+$client->setSettings(['ssl_verify_peer' => false, 'ssl_verify_host' => 0]);
+$embed = new Embed\Embed(new Embed\Http\Crawler($client));
+```
+
+## [4.5.3] - 2026-10-30
+### Added
+- Kick adapter. Channel pages embed `https://player.kick.com/<slug>` (16:9). Video pages read the title, thumbnail and author name from Kick's public API. Clips have no embed code because Kick does not document a clip player
+
+### Fixed
+- An Open Graph video served as HLS (`.m3u8`, `application/x-mpegURL` or `application/vnd.apple.mpegurl`, also read from `og:video:type`) no longer produces an `<iframe>` pointing to the playlist
+- Twitch video iframes use the documented `video=v<ID>` parameter instead of `id`
+- Twitch clip URLs (`clips.twitch.tv/<slug>` and `twitch.tv/<channel>/clip/<slug>`) produce a `clips.twitch.tv/embed` iframe when `twitch:parent` is set
+
+## [4.5.2] - 2026-10-27
+### Added
+- oEmbed responses of type `photo` without `html` now produce an `<img>` embed code from their `url`, `width` and `height` [#584]
+
+## [4.5.1] - 2026-10-26
+### Security
+- JSON-LD remote contexts are never fetched. A page-supplied `@context` is not requested, so it cannot bypass the URL policy or follow redirects. schema.org contexts are resolved from a bundled vocabulary; any other remote context is skipped [#573]
+
+## [4.5.0] - 2026-10-19
+### Security
+- Block requests to non-public addresses before they are sent, including redirects, page-declared oEmbed endpoints, adapter APIs, and meta-refresh targets. Private and loopback URLs are rejected unless `UrlPolicy::allowPrivateNetworks()` or `withAllowedHosts()` is used [#573]
+
+### Added
+- `Embed\Http\UrlPolicy` and `Embed\Http\BlockedRequestException`, configurable from `Crawler::setUrlPolicy()`
+
+### Changed
+- A negative `max_redirs`, which curl treated as unlimited, now follows at most 50 redirects
+- Reaching that limit is still curl error 47. The message is `Number of redirects hit maximum amount` rather than curl's `Maximum (N) redirects followed`
+
+### Fixed
+- `resolveUri()` dropped the port of the base URL
+- Read every `curl_multi_info_read` message in the parallel client instead of only one per iteration
+
+## [4.4.19] - 2026-07-08
+### Changed
+- Access tokens are now optional with Meta (Facebook & Instagram) [#577]
+
+### Fixed
+- Updated tests
+
+## [4.4.18] - 2026-06-19
+### Added
+- Add PHPStan Static Analysis (Level Max + Strict Rules) [#562]
+- Add support for Facebook reel URLs [#572]
+- Update oEmbed endpoints [#574]
+
+### Changed
+- Make snapshot updates possible without modifying test code [#564]
+
+### Removed
+- Remove support for discontinued services (chirb.it and sassmeister.com) [#565]
+
+### Fixed
+- Add PHPStan generic type annotations and simplify detector implementations [#563]
+- Update fixtures to pass PHPUnit [#559]
+- wrong mb_encoding_aliases() handling for PHP 8.0+ [#560]
+- Remove calls to curl_close and curl_multi_close on PHP 8.0 and later [#569]
+- Add phpstan.dist.neon to export-ignore in .gitattributes [#571]
+
 ## [4.4.17] - 2025-05-13
 ### Fixed
 - Adapters hostname detection [#556].
@@ -264,7 +376,47 @@ Full library refactoring.
 [#553]: https://github.com/oscarotero/Embed/issues/553
 [#555]: https://github.com/oscarotero/Embed/issues/555
 [#556]: https://github.com/oscarotero/Embed/issues/556
+[#559]: https://github.com/oscarotero/Embed/issues/559
+[#560]: https://github.com/oscarotero/Embed/issues/560
+[#562]: https://github.com/oscarotero/Embed/issues/562
+[#563]: https://github.com/oscarotero/Embed/issues/563
+[#564]: https://github.com/oscarotero/Embed/issues/564
+[#565]: https://github.com/oscarotero/Embed/issues/565
+[#569]: https://github.com/oscarotero/Embed/issues/569
+[#571]: https://github.com/oscarotero/Embed/issues/571
+[#572]: https://github.com/oscarotero/Embed/issues/572
+[#573]: https://github.com/oscarotero/Embed/issues/573
+[#584]: https://github.com/php-embed/Embed/issues/584
+[#243]: https://github.com/php-embed/Embed/issues/243
+[#575]: https://github.com/php-embed/Embed/issues/575
+[#283]: https://github.com/php-embed/Embed/issues/283
+[#372]: https://github.com/php-embed/Embed/issues/372
+[#485]: https://github.com/php-embed/Embed/issues/485
+[#520]: https://github.com/php-embed/Embed/issues/520
+[#524]: https://github.com/php-embed/Embed/issues/524
+[#536]: https://github.com/php-embed/Embed/issues/536
+[#377]: https://github.com/php-embed/Embed/issues/377
+[#567]: https://github.com/php-embed/Embed/issues/567
+[#574]: https://github.com/oscarotero/Embed/issues/574
+[#577]: https://github.com/oscarotero/Embed/issues/577
+[#268]: https://github.com/php-embed/Embed/issues/268
+[#391]: https://github.com/php-embed/Embed/issues/391
+[#408]: https://github.com/php-embed/Embed/issues/408
+[#462]: https://github.com/php-embed/Embed/issues/462
+[#535]: https://github.com/php-embed/Embed/issues/535
 
+[4.7.0]: https://github.com/php-embed/Embed/compare/v4.6.3...v4.7.0
+[4.6.3]: https://github.com/php-embed/Embed/compare/v4.6.2...v4.6.3
+[4.6.2]: https://github.com/php-embed/Embed/compare/v4.6.1...v4.6.2
+[4.6.1]: https://github.com/php-embed/Embed/compare/v4.6.0...v4.6.1
+[4.6.0]: https://github.com/php-embed/Embed/compare/v4.5.4...v4.6.0
+[4.5.4]: https://github.com/php-embed/Embed/compare/v4.5.3...v4.5.4
+[4.5.3]: https://github.com/php-embed/Embed/compare/v4.5.2...v4.5.3
+[4.5.2]: https://github.com/php-embed/Embed/compare/v4.5.1...v4.5.2
+[4.5.1]: https://github.com/php-embed/Embed/compare/v4.5.0...v4.5.1
+[4.5.0]: https://github.com/php-embed/Embed/compare/v4.4.19...v4.5.0
+[4.4.19]: https://github.com/oscarotero/Embed/compare/v4.4.18...v4.4.19
+[4.4.18]: https://github.com/oscarotero/Embed/compare/v4.4.17...v4.4.18
 [4.4.17]: https://github.com/oscarotero/Embed/compare/v4.4.16...v4.4.17
 [4.4.16]: https://github.com/oscarotero/Embed/compare/v4.4.15...v4.4.16
 [4.4.15]: https://github.com/oscarotero/Embed/compare/v4.4.14...v4.4.15

@@ -1,0 +1,35 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    env:
+      extensions: xdebug
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.1"
+          - "8.2"
+          - "8.3"
+          - "8.4"
+          - "8.5"
+
+    steps:
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          extensions: "${{ env.extensions }}"
+          ini-values: "memory_limit=-1, error_reporting=E_ALL, display_errors=On"
+          tools: composer
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download dependencies
+        run: composer update --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-audit --no-scripts
+      - name: Run PHPUnit tests
+        run: vendor/bin/phpunit --display-all-issues

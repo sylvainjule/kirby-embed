@@ -1,9 +1,3 @@
-# Searching MAINTAINER
-
-After 11 years since the first version of Embed was released, I don't have the time or motivation to continue maintaining this project. I rarely write PHP code and am not aware of the latest features of PHP. If anyone wants to continue maintaining and evolving this library, please open an issue or contact me.
-
-Meanwhile, I'll continue accepting PR from the community (I don't want this project to die), but won't be actively working on improving it. Thanks!
-
 # Embed
 
 
@@ -24,7 +18,7 @@ Requirements:
   * [nyholm/psr7](https://github.com/Nyholm/psr7)
   * [sunrise/http-message](https://github.com/sunrise-php/http-message)
 
-> If you need PHP 5.5-7.3 support, [use the 3.x version](https://github.com/oscarotero/Embed/tree/v3.x)
+> If you need PHP 5.5-7.3 support, [use the 3.x version](https://github.com/php-embed/Embed/tree/v3.x)
 
 ## Online demo
 
@@ -102,6 +96,37 @@ foreach ($infos as $info) {
 }
 ```
 
+## Site-specific results
+
+Some sites get extra handling from their adapters:
+
+- **YouTube**: `$info->image` is `maxresdefault.jpg` when the video page links it in `og:image` (YouTube only does it for videos that have it), and the oEmbed `hqdefault.jpg` otherwise. The start (`t=` or `start=`) and end (`end=`) times of the URL are kept in the player URL, in seconds or in the `1m30s` format, for example `https://www.youtube.com/watch?v=ID&t=10&end=20`.
+- **Vimeo**: `$info->image` is the thumbnail at its full size, without the size suffix that the oEmbed `thumbnail_url` has (like `_295x166`). The resized one is still available with `$info->getOEmbed()->url('thumbnail_url')`.
+- **Google Drive**: shared files (`drive.google.com/file/d/<id>/view` or `drive.google.com/open?id=<id>`) get the same `/preview` iframe as Drive's "Embed item" option. Files that need a login return no code.
+- **Bilibili, Youku, Tudou and Tencent Video**: the player iframe is built from the video URL (`bilibili.com/video/BV...`, `v.youku.com/v_show/id_<ID>.html`, `play.tudou.com/v_show/id_<ID>.html`, `v.qq.com/x/cover/<cid>/<vid>.html` or `v.qq.com/x/page/<vid>.html`). Tudou videos use the Youku player. Tencent Video pages are rendered with JavaScript, so their title and image are often missing.
+- **NetEase Music**: songs, albums and playlists get the `music.163.com/outchain/player` iframe.
+- **Reddit**: from cloud or datacenter IPs, Reddit often returns 403. From a residential IP, oEmbed still provides the title, author and embed code, but not the image or description: the page is a JavaScript app with no Open Graph tags, and the `.json` API requires OAuth.
+
+`$info->providerName` is read from the oEmbed `provider_name`, the `og:site_name`, `publisher` and similar metas, and then `application-name` or `apple-mobile-web-app-title`. When none of them is found, it falls back to the capitalized domain name (`Example` for `www.example.com`). To get `null` instead of that fallback, replace the detector:
+
+```php
+use Embed\Detectors\Detector;
+
+class StrictProviderName extends Detector
+{
+    public function detect(): ?string
+    {
+        $oembed = $this->extractor->getOEmbed();
+        $metas = $this->extractor->getMetas();
+
+        return $oembed->str('provider_name')
+            ?? $metas->str('og:site_name', 'publisher', 'application-name', 'apple-mobile-web-app-title');
+    }
+}
+
+$embed->getExtractorFactory()->addDetector('providerName', StrictProviderName::class);
+```
+
 ## Document
 
 The document is the object that store the html code of the page. You can use it to extract extra info from the html code:
@@ -174,6 +199,8 @@ $oembed->int('width'); //Return the value as integer
 $oembed->url('url'); //Return the value as full url (converts relative urls to absolutes)
 ```
 
+When an oEmbed response has type `photo` and no `html`, `$info->code` is built as an `<img>` tag from its `url` (with `width` and `height` when available), so photo providers like GIPHY or Flickr also return embed code.
+
 Additional oEmbed parameters (like instagrams `hidecaption`) can also be provided:
 ```php
 $embed = new Embed();
@@ -185,9 +212,47 @@ $result->setSettings([
 $oembed = $info->getOEmbed();
 ```
 
+### Checking the oEmbed result
+
+`getOEmbed()` always returns an `OEmbed` object. When no endpoint was found, the request could not be sent or the response is not valid JSON or XML, `all()` returns an empty array:
+
+```php
+$oembed = $info->getOEmbed();
+
+if ($oembed->all() === []) {
+    // No oEmbed data for this URL
+}
+```
+
+Some providers answer with partial data instead of an error, so check the fields you need too (for example `$oembed->str('title')`).
+
+### Vimeo videos with domain-level privacy
+
+Vimeo videos that can only be embedded on some domains return a simplified oEmbed response (no title, author, thumbnail or description) with `"domain_status_code": 403`. To get the full data, send a `Referer` from one of the allowed domains. Extra headers set on the crawler are sent with every request, including the oEmbed one, and a `Referer` set this way is kept when a request follows redirects:
+
+```php
+use Embed\Embed;
+
+$embed = new Embed();
+$embed->getCrawler()->addDefaultHeaders([
+    'Referer' => 'https://www.your-allowed-domain.com/',
+]);
+
+$info = $embed->get('https://vimeo.com/123456789');
+$oembed = $info->getOEmbed();
+
+if ($oembed->int('domain_status_code') === 403) {
+    // The Referer is not an allowed domain for this video
+}
+```
+
+`domain_status_code` is only present for videos with domain-level privacy, and it is `200` when the `Referer` is allowed. Videos that cannot be embedded at all, or that are private, return HTTP 403 or 404 and no oEmbed data.
+
 ## LinkedData
 
 Another API available by default, used to extract info using the [JsonLD](https://www.w3.org/TR/json-ld/) schema.
+
+Remote `@context` URLs are never fetched. schema.org contexts (`schema.org`, `www.schema.org`, and `schema.googleapis.com`, with or without a trailing slash, `.jsonld`, or `docs/jsonldcontext.json`) are read from a bundled vocabulary. Any other remote context is skipped and extraction continues with the rest of the page.
 
 ```php
 //Get the linkedData object
@@ -265,6 +330,8 @@ The `Extractor` class has many `Detectors`. Each detector is responsible to dete
 
 So, an adapter is basically an extractor created specifically for a site. It can contains also custom detectors or apis. If you see the `src/Adapters` folder you can see all adapters.
 
+An adapter can also rewrite the URL before it is requested by overriding the static `normalizeUri()` method of its extractor. For example, the NetEase Music adapter turns `music.163.com/#/song?id=1` into `music.163.com/song?id=1`, because the part after `#` is never sent to the server.
+
 If you create an adapter, you need also register to Embed, so it knows in which website needs to use. To do that, there's the `ExtractorFactory` object, that is responsible for instantiate the right extractor for each site.
 
 ```php
@@ -313,6 +380,95 @@ $info = $embed->get('http://example.com');
 $robots = $info->robots;
 ```
 
+### HTTP layer
+
+Every request Embed makes goes through three pieces:
+
+- `Embed\Http\Crawler` is what `Embed` uses. It creates the requests (adding default headers), validates URLs with the `UrlPolicy` and hands them to a PSR-18 client. Get it with `$embed->getCrawler()`.
+- `Embed\Http\CurlClient` is the default PSR-18 client. It keeps the settings (`setSettings()`) and the `UrlPolicy`, and `sendRequests()` runs several requests in parallel (used by `getMulti()`).
+- `Embed\Http\CurlDispatcher` does the actual curl work: it pins DNS, follows redirects, applies timeouts and builds the PSR-7 responses. It is `final` and internal, so you do not create or extend it.
+
+#### Upgrading from v3 (`CurlDispatcher` with `CURLOPT_*` options)
+
+In v3 you passed a `CurlDispatcher` with raw `CURLOPT_*` options to `Embed::create()`. That API is gone in v4: the `CurlDispatcher` constructor is private and the class is `final`. Raw `CURLOPT_*` options are not accepted, because some of them (`CURLOPT_FOLLOWLOCATION`, `CURLOPT_RESOLVE`, `CURLOPT_PROTOCOLS`) are what keeps the SSRF protection working. Use the named settings of `CurlClient` instead:
+
+| v3 option | v4 `CurlClient` setting |
+| --- | --- |
+| `CURLOPT_MAXREDIRS` | `max_redirs` (default 10) |
+| `CURLOPT_CONNECTTIMEOUT` | `connect_timeout` (default 10) |
+| `CURLOPT_TIMEOUT` | `timeout` (default 10, total time including redirects) |
+| `CURLOPT_FOLLOWLOCATION` | `follow_location` (default true) |
+| `CURLOPT_SSL_VERIFYHOST` | `ssl_verify_host` (default 2) |
+| `CURLOPT_SSL_VERIFYPEER` | `ssl_verify_peer` (default true) |
+| `CURLOPT_USERAGENT` | `user_agent` |
+| `CURLOPT_COOKIEJAR` / `CURLOPT_COOKIEFILE` | `cookies_path` (default `embed-cookies.txt` in `sys_get_temp_dir()`) |
+| `CURLOPT_IPRESOLVE` | always `CURL_IPRESOLVE_V4` |
+| `CURLOPT_ENCODING` | always `''` (every encoding curl supports) |
+
+There is also `ignored_errors`: a list of curl error codes (for example `[18]`) that do not throw. See [Settings](#settings) for the full example.
+
+```php
+use Embed\Embed;
+use Embed\Http\Crawler;
+use Embed\Http\CurlClient;
+
+$client = new CurlClient();
+$client->setSettings([
+    'max_redirs' => 20,
+    'connect_timeout' => 5,
+    'timeout' => 15,
+    'user_agent' => 'MyBot/1.0',
+    'cookies_path' => __DIR__.'/cookies.txt',
+]);
+
+$embed = new Embed(new Crawler($client));
+$info = $embed->get('https://example.com');
+```
+
+Calling `setSettings()` again merges the new values over the previous ones.
+
+Extra headers go on the crawler and are sent with every request. They override the defaults (a Firefox `User-Agent` and `Cache-Control: max-age=0`). The `user_agent` setting, when present, wins over the `User-Agent` header:
+
+```php
+$embed->getCrawler()->addDefaultHeaders([
+    'Accept-Language' => 'es-ES,es;q=0.9',
+]);
+```
+
+#### Custom client instead of a custom dispatcher
+
+To change how requests are sent (logging, caching, retries, a different HTTP library), pass any PSR-18 client to the `Crawler`. To keep the built-in curl client and its SSRF protection, wrap it:
+
+```php
+use Embed\Embed;
+use Embed\Http\Crawler;
+use Embed\Http\CurlClient;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class LoggingClient implements ClientInterface
+{
+    private CurlClient $client;
+
+    public function __construct(CurlClient $client)
+    {
+        $this->client = $client;
+    }
+
+    public function sendRequest(RequestInterface $request): ResponseInterface
+    {
+        error_log('Embed request: '.$request->getUri());
+
+        return $this->client->sendRequest($request);
+    }
+}
+
+$embed = new Embed(new Crawler(new LoggingClient(new CurlClient())));
+```
+
+With a client that is not exactly `CurlClient`, `getMulti()` sends the requests one by one instead of in parallel, and `Crawler::setUrlPolicy()` does not reach the inner client (see [Security / SSRF protection](#security--ssrf-protection) and [Custom PSR-18 clients](#custom-psr-18-clients)).
+
 ### Settings
 
 If you need to pass settings to the CurlClient to perform http queries:
@@ -326,12 +482,12 @@ $client = new CurlClient();
 $client->setSettings([
     'cookies_path' => $cookies_path,
     'ignored_errors' => [18],
-    'max_redirs' => 3,               // see CURLOPT_MAXREDIRS
-    'connect_timeout' => 2,          // see CURLOPT_CONNECTTIMEOUT
-    'timeout' => 2,                  // see CURLOPT_TIMEOUT
-    'ssl_verify_host' => 2,          // see CURLOPT_SSL_VERIFYHOST
-    'ssl_verify_peer' => 1,          // see CURLOPT_SSL_VERIFYPEER
-    'follow_location' => true,       // see CURLOPT_FOLLOWLOCATION
+    'max_redirs' => 3,               // redirects to follow; a negative value means up to 50
+    'connect_timeout' => 2,          // per connection, see CURLOPT_CONNECTTIMEOUT
+    'timeout' => 2,                  // total seconds for the request, including redirects
+    'ssl_verify_host' => 2,          // default 2; 0 disables hostname checks, any other value enables them
+    'ssl_verify_peer' => true,       // default true; falsy disables certificate checks, any other value enables them
+    'follow_location' => true,       // false returns the 3xx; each hop is checked
     'user_agent' => 'Mozilla',       // see CURLOPT_USERAGENT
 ]);
 
@@ -350,11 +506,165 @@ $embed->setSettings([
     'facebook:token' => '1234|5678',  //Required to embed content from Facebook
     'instagram:token' => '1234|5678', //Required to embed content from Instagram
     'twitter:token' => 'asdf',        //Improve the data from twitter
+    'mastodon:iframe' => true,        //Embed Mastodon posts as an iframe instead of a blockquote + embed.js (default: false)
 ]);
 $info = $embed->get($url);
 ```
 
+With `mastodon:iframe`, the oEmbed html of any Mastodon server (`<blockquote class="mastodon-embed" data-embed-url="...">` plus `embed.js`) is replaced with an `<iframe>` pointing to its `data-embed-url`, 400px wide, sandboxed and with `allowfullscreen`. It only applies when the embed URL is `https`, ends in `/embed` and is on the same host as the post. Mastodon does not report a height, so `$info->code->height` is `null`; without `embed.js` the iframe does not resize to its content, so set a height in your CSS.
+
 Note: The built-in detectors does not require settings. This feature is only for convenience if you create a specific detector that requires settings.
+
+## Security / SSRF protection
+
+The default HTTP client refuses to connect to non-public addresses. That covers the URL you pass to `get()` / `getMulti()` and every later request Embed makes itself (redirects, oEmbed endpoints declared by the page, adapter APIs, and meta-refresh targets). A hostname is allowed only when every IPv4 address it resolves to is public. Loopback, private, link-local, CGNAT, documentation, and multicast ranges are rejected. IPv4-mapped IPv6, NAT64, and 6to4 are rejected when the embedded IPv4 address is not public. The Teredo prefix `2001::/32` is rejected as a whole, not by reading an address out of it. Only `http` and `https` are allowed, and redirects are followed inside Embed so each hop is checked the same way. JSON-LD `@context` URLs are not requested at all.
+
+`follow_location` set to false still returns the 3xx response. `max_redirs` is still how many redirects are followed (10 by default). A negative value, which curl treated as unlimited, follows at most 50. `timeout` is the total time for the request and its redirects; `connect_timeout` is still per connection. TLS certificates and hostnames are verified by default. `ssl_verify_host` of `0` disables hostname checks, and any other value enables them, as curl does when it receives `1` or `true`. `ssl_verify_peer` is off only for a falsy value (`0`, `false`, `'0'`, `''`); `1`, `2`, `'true'` and `'yes'` keep certificate checks on. A missing or `null` value keeps verification on. Reaching the redirect limit still fails with curl error 47. The message is `Number of redirects hit maximum amount`.
+
+This is a behavior change: a URL that used to be fetched from an intranet now throws `Embed\Http\BlockedRequestException`. To opt back in:
+
+```php
+use Embed\Http\UrlPolicy;
+
+$embed->getCrawler()->setUrlPolicy(
+    UrlPolicy::default()->allowPrivateNetworks()
+);
+```
+
+You can allow specific names without opening every private network. `*.corp` matches any host that ends in `.corp`. Allowing one resolved address does not allow the other addresses returned for that name:
+
+```php
+$embed->getCrawler()->setUrlPolicy(
+    UrlPolicy::default()->withAllowedHosts('wiki.corp', '*.corp')
+);
+```
+
+`withAllowedPorts([80, 443])` is optional. When it is set, an omitted port counts as 80 or 443. Internationalized host names are converted with `idn_to_ascii()`, which needs the `intl` extension; without it those hosts are rejected. The built-in client pins the punycode form, because that is the name libcurl looks up.
+
+Values such as `image` or `favicon` are URLs extracted from the page. Embed does not download them, so it does not apply this policy to them. Check one before you fetch it yourself:
+
+```php
+$policy = $embed->getCrawler()->getUrlPolicy();
+$image = $info->image;
+
+if ($image !== null) {
+    $policy->validate($embed->getCrawler()->createRequest('GET', (string) $image));
+}
+```
+
+A page-declared oEmbed endpoint, adapter API, or meta-refresh target that the policy rejects is skipped, and extraction continues with the rest of the page. The URL passed to `get()` or `getMulti()` is not skipped: that request throws. In `getMulti()`, one rejected URL rejects the whole batch before any request is sent. A redirect discovered after the batch has started is checked on the same thread, including its DNS lookup, so the other transfers in that batch wait until the check returns.
+
+`Crawler::setUrlPolicy()` copies the policy onto the client only when that client is exactly `Embed\Http\CurlClient`. A decorator or other wrapper around `CurlClient` is not updated. Call `setUrlPolicy()` on the inner client as well. Otherwise the wrapper is pre-checked with the crawler's policy, and the inner client keeps the policy it already had.
+
+### Custom PSR-18 clients
+
+If you pass your own PSR-18 client, Embed validates the URI before calling it and does not validate again inside that client. Two things are then outside Embed's control:
+
+* DNS can change between the check and the connection (rebinding).
+* Redirects followed by the client are not checked, unless the client gives you a hook.
+
+The built-in curl client pins the validated addresses with `CURLOPT_RESOLVE` and follows redirects itself, so those gaps do not apply to it. With Guzzle you can repeat the check on each redirect:
+
+```php
+use Embed\Http\UrlPolicy;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
+
+$policy = UrlPolicy::default();
+$stack = HandlerStack::create();
+$stack->push(Middleware::mapRequest(function (RequestInterface $request) use ($policy) {
+    $policy->validate($request);
+
+    return $request;
+}));
+
+$client = new Client([
+    'handler' => $stack,
+    'allow_redirects' => [
+        'on_redirect' => function (RequestInterface $request, ResponseInterface $response, UriInterface $uri) use ($policy): void {
+            $policy->validate($request->withUri($uri));
+        },
+    ],
+]);
+```
+
+Even that hook cannot see the address the client actually connected to. Prefer the built-in client when the pages are untrusted.
+
+### Proxies
+
+If `http_proxy`, `https_proxy`, or `all_proxy` is set, curl connects to the proxy and the proxy resolves the origin. Embed still validates each URL before requesting it, and still checks redirects, but it cannot pin DNS or verify the address the proxy used. Point those variables only at a proxy you trust.
+
+---
+
+## Testing
+
+### Running tests
+
+```bash
+composer test
+# or
+./vendor/bin/phpunit
+```
+
+### Snapshot modes
+
+The test suite uses cached HTTP responses and fixtures to avoid network requests during testing. You can control this behavior using environment variables:
+
+| Environment Variable | Description |
+|---------------------|-------------|
+| `UPDATE_EMBED_SNAPSHOTS=1` | Fetch from network and update both cache and fixtures |
+| `EMBED_STRICT_CACHE=1` | Fail if cache or fixture doesn't exist (useful for CI) |
+
+By default (no environment variables set), tests read from cache and generate missing files automatically.
+
+**Note:** If both `UPDATE_EMBED_SNAPSHOTS` and `EMBED_STRICT_CACHE` are set, `UPDATE_EMBED_SNAPSHOTS` takes precedence.
+
+### Cache structure
+
+The test framework uses two types of cached data:
+
+- **Response cache** (`tests/cache/`): Cached HTTP responses from external sites
+- **Fixtures** (`tests/fixtures/`): Expected test results (metadata extracted from cached responses)
+
+### How to update cache
+
+#### When a website changes its HTML structure
+
+If a website updates its HTML and you need to update the cached response and fixture:
+
+```bash
+# Update cache and fixture for a specific test
+UPDATE_EMBED_SNAPSHOTS=1 ./vendor/bin/phpunit --filter testYoutube
+```
+
+#### When adding a new test
+
+After adding a new URL to test:
+
+```bash
+# This will fetch the response and create both cache and fixture
+UPDATE_EMBED_SNAPSHOTS=1 ./vendor/bin/phpunit --filter testNewSite
+```
+
+#### Update all caches at once
+
+To refresh all cached responses and fixtures from the network:
+
+```bash
+UPDATE_EMBED_SNAPSHOTS=1 ./vendor/bin/phpunit
+```
+
+#### For CI environments
+
+Ensure all tests run strictly from cache (fail if any cache is missing):
+
+```bash
+EMBED_STRICT_CACHE=1 ./vendor/bin/phpunit
+```
 
 ---
 

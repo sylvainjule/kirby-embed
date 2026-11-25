@@ -4,102 +4,116 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf
+class ComposerStaticInitad2597767671569a88f485fffa0868dd
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '09fc349b549513bf7f4291502426f919' => __DIR__ . '/..' . '/embed/embed/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'P' => 
+        'S' =>
+        array (
+            'Symfony\\Polyfill\\Php80\\' => 23,
+        ),
+        'P' =>
         array (
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
         ),
-        'M' => 
+        'M' =>
         array (
             'ML\\JsonLD\\' => 10,
+            'ML\\IRI\\Tests\\' => 13,
+            'ML\\IRI\\' => 7,
         ),
-        'K' => 
+        'K' =>
         array (
             'Kirby\\' => 6,
         ),
-        'H' => 
+        'H' =>
         array (
             'HtmlParser\\' => 11,
         ),
-        'G' => 
+        'G' =>
         array (
             'GuzzleHttp\\Psr7\\' => 16,
         ),
-        'E' => 
+        'E' =>
         array (
             'Embed\\' => 6,
         ),
-        'C' => 
+        'C' =>
         array (
             'Composer\\CaBundle\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Psr\\Http\\Message\\' => 
+        'Symfony\\Polyfill\\Php80\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
+        ),
+        'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
             1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'Psr\\Http\\Client\\' => 
+        'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'ML\\JsonLD\\' => 
+        'ML\\JsonLD\\' =>
         array (
-            0 => __DIR__ . '/..' . '/ml/json-ld',
+            0 => __DIR__ . '/..' . '/sweetrdf/json-ld/src',
         ),
-        'Kirby\\' => 
+        'ML\\IRI\\Tests\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/sweetrdf/iri/tests',
+        ),
+        'ML\\IRI\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/sweetrdf/iri/src',
+        ),
+        'Kirby\\' =>
         array (
             0 => __DIR__ . '/..' . '/getkirby/composer-installer/src',
         ),
-        'HtmlParser\\' => 
+        'HtmlParser\\' =>
         array (
             0 => __DIR__ . '/..' . '/oscarotero/html-parser/src',
         ),
-        'GuzzleHttp\\Psr7\\' => 
+        'GuzzleHttp\\Psr7\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
         ),
-        'Embed\\' => 
+        'Embed\\' =>
         array (
             0 => __DIR__ . '/..' . '/embed/embed/src',
         ),
-        'Composer\\CaBundle\\' => 
+        'Composer\\CaBundle\\' =>
         array (
             0 => __DIR__ . '/..' . '/composer/ca-bundle/src',
         ),
     );
 
-    public static $prefixesPsr0 = array (
-        'M' => 
-        array (
-            'ML\\IRI' => 
-            array (
-                0 => __DIR__ . '/..' . '/ml/iri',
-            ),
-        ),
-    );
-
     public static $classMap = array (
+        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
+        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
+        'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+        'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit15b4b4f6c06d13a66170930d082a8cbf::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitad2597767671569a88f485fffa0868dd::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitad2597767671569a88f485fffa0868dd::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitad2597767671569a88f485fffa0868dd::$classMap;
 
         }, null, ClassLoader::class);
     }

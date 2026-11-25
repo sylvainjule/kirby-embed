@@ -5,14 +5,18 @@ namespace Embed\Detectors;
 
 use Psr\Http\Message\UriInterface;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class AuthorUrl extends Detector
 {
     public function detect(): ?UriInterface
     {
         $oembed = $this->extractor->getOEmbed();
 
-        return $oembed->url('author_url')
-            ?: $this->detectFromTwitter();
+        $result = $oembed->url('author_url');
+        return $result !== null ? $result : $this->detectFromTwitter();
     }
 
     private function detectFromTwitter(): ?UriInterface
@@ -22,7 +26,7 @@ class AuthorUrl extends Detector
 
         $user = $metas->str('twitter:creator');
 
-        return $user
+        return $user !== null
             ? $crawler->createUri(sprintf('https://twitter.com/%s', ltrim($user, '@')))
             : null;
     }
