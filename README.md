@@ -18,7 +18,7 @@ Built on top of [oscarotero/Embed](https://github.com/oscarotero/Embed).
 
 ## 1. Installation
 
-> K3: up to 1.1.0, K4: up to 1.1.2, K5: 1.2.1, K6: 2+.
+> K3: up to 1.1.0, K4: up to 1.1.2, K5: up to 1.2.2, K6: 2+.
 
 Download and copy this repository to ```/site/plugins/embed```
 

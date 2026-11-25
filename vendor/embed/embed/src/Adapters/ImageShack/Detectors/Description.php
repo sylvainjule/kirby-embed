@@ -5,13 +5,16 @@ namespace Embed\Adapters\ImageShack\Detectors;
 
 use Embed\Detectors\Description as Detector;
 
+/**
+ * @extends Detector<\Embed\Adapters\ImageShack\Extractor>
+ */
 class Description extends Detector
 {
     public function detect(): ?string
     {
         $api = $this->extractor->getApi();
 
-        return $api->str('description')
-            ?: parent::detect();
+        $result = $api->str('description');
+        return (is_string($result) && trim($result) !== '') ? $result : parent::detect();
     }
 }

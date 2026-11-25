@@ -7,12 +7,15 @@ use Embed\Detectors\Code as Detector;
 use Embed\EmbedCode;
 use function Embed\html;
 
+/**
+ * @extends Detector<\Embed\Adapters\Twitch\Extractor>
+ */
 class Code extends Detector
 {
     public function detect(): ?EmbedCode
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $result = parent::detect();
+        return $result !== null ? $result : $this->fallback();
     }
 
     private function fallback(): ?EmbedCode
@@ -20,15 +23,35 @@ class Code extends Detector
         $path = $this->extractor->getUri()->getPath();
         $parent = $this->extractor->getSetting('twitch:parent');
 
-        if ($id = self::getVideoId($path)) {
-            $code = $parent
-                ? self::generateIframeCode(['id' => $id, 'parent' => $parent])
+        $id = self::getVideoId($path);
+        if ($id !== null) {
+            $code = $parent !== null
+                ? self::generateIframeCode(['video' => "v{$id}", 'parent' => $parent])
                 : self::generateJsCode('video', $id);
             return new EmbedCode($code, 620, 378);
         }
 
-        if ($id = self::getChannelId($path)) {
-            $code = $parent
+        $id = self::getClipId($this->extractor->getUri()->getHost(), $path);
+        if ($id !== null) {
+            if ($parent === null) {
+                // Clips only have an iframe player, and it requires a parent.
+                return null;
+            }
+            $query = http_build_query(['clip' => $id, 'parent' => $parent, 'autoplay' => 'false']);
+            $code = html('iframe', [
+                'src' => "https://clips.twitch.tv/embed?{$query}",
+                'frameborder' => 0,
+                'allowfullscreen' => 'true',
+                'scrolling' => 'no',
+                'height' => 378,
+                'width' => 620,
+            ]);
+            return new EmbedCode($code, 620, 378);
+        }
+
+        $id = self::getChannelId($path);
+        if ($id !== null) {
+            $code = $parent !== null
                 ? self::generateIframeCode(['channel' => $id, 'parent' => $parent])
                 : self::generateJsCode('channel', $id);
             return new EmbedCode($code, 620, 378);
@@ -39,7 +62,20 @@ class Code extends Detector
 
     private static function getVideoId(string $path): ?string
     {
-        if (preg_match('#^/videos/(\d+)$#', $path, $matches)) {
+        if (preg_match('#^/videos/(\d+)$#', $path, $matches) === 1) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    private static function getClipId(string $host, string $path): ?string
+    {
+        if (preg_match('#^/\w+/clip/([\w-]+)$#', $path, $matches) === 1) {
+            return $matches[1];
+        }
+
+        if ($host === 'clips.twitch.tv' && preg_match('#^/([\w-]+)$#', $path, $matches) === 1 && $matches[1] !== 'embed') {
             return $matches[1];
         }
 
@@ -48,13 +84,16 @@ class Code extends Detector
 
     private static function getChannelId(string $path): ?string
     {
-        if (preg_match('#^/(\w+)$#', $path, $matches)) {
+        if (preg_match('#^/(\w+)$#', $path, $matches) === 1) {
             return $matches[1];
         }
 
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     private static function generateIframeCode(array $params): string
     {
         $query = http_build_query(['autoplay' => 'false'] + $params);
@@ -69,7 +108,7 @@ class Code extends Detector
         ]);
     }
 
-    private static function generateJsCode($key, $value)
+    private static function generateJsCode(string $key, string $value): string
     {
         return <<<HTML
         <div id="twitch-embed"></div>

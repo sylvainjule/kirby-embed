@@ -7,6 +7,9 @@ use Embed\Extractor as Base;
 
 class Extractor extends Base
 {
+    /**
+     * @return array{title: Detectors\Title}
+     */
     public function createCustomDetectors(): array
     {
         $this->oembed = new OEmbed($this);

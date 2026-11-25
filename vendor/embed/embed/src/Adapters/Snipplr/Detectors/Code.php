@@ -8,12 +8,15 @@ use Embed\EmbedCode;
 use function Embed\html;
 use function Embed\matchPath;
 
+/**
+ * @extends Detector<\Embed\Adapters\Snipplr\Extractor>
+ */
 class Code extends Detector
 {
     public function detect(): ?EmbedCode
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $result = parent::detect();
+        return $result !== null ? $result : $this->fallback();
     }
 
     private function fallback(): ?EmbedCode

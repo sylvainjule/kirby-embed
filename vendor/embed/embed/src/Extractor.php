@@ -53,6 +53,8 @@ use Psr\Http\Message\UriInterface;
  * @property UriInterface|null    $redirect
  * @property string|null          $title
  * @property UriInterface         $url
+ *
+ * @template TDetector of Detector = Detector
  */
 class Extractor
 {
@@ -66,27 +68,47 @@ class Extractor
     protected LinkedData $linkedData;
     protected Metas $metas;
 
+    /** @var array<string, mixed> */
     private array $settings = [];
+    /** @var array<string, Detectors\Detector<$this>> */
     private array $customDetectors = [];
-
+    /** @var AuthorName<$this> */
     protected AuthorName $authorName;
+    /** @var AuthorUrl<$this> */
     protected AuthorUrl $authorUrl;
+    /** @var Cms<$this> */
     protected Cms $cms;
+    /** @var Code<$this> */
     protected Code $code;
+    /** @var Description<$this> */
     protected Description $description;
+    /** @var Favicon<$this> */
     protected Favicon $favicon;
+    /** @var Feeds<$this> */
     protected Feeds $feeds;
+    /** @var Icon<$this> */
     protected Icon $icon;
+    /** @var Image<$this> */
     protected Image $image;
+    /** @var Keywords<$this> */
     protected Keywords $keywords;
+    /** @var Language<$this> */
     protected Language $language;
+    /** @var Languages<$this> */
     protected Languages $languages;
+    /** @var License<$this> */
     protected License $license;
+    /** @var ProviderName<$this> */
     protected ProviderName $providerName;
+    /** @var ProviderUrl<$this> */
     protected ProviderUrl $providerUrl;
+    /** @var PublishedTime<$this> */
     protected PublishedTime $publishedTime;
+    /** @var Redirect<$this> */
     protected Redirect $redirect;
+    /** @var Title<$this> */
     protected Title $title;
+    /** @var Url<$this> */
     protected Url $url;
 
     public function __construct(UriInterface $uri, RequestInterface $request, ResponseInterface $response, Crawler $crawler)
@@ -124,37 +146,64 @@ class Extractor
         $this->url = new Url($this);
     }
 
+    /**
+     * @return mixed
+     */
     public function __get(string $name)
     {
-        $detector = $this->customDetectors[$name] ?? $this->$name ?? null;
+        $detector = $this->customDetectors[$name] ?? null;
 
-        if (!$detector || !($detector instanceof Detector)) {
+        if ($detector === null && property_exists($this, $name)) {
+            /** @var mixed $property */
+            /** @phpstan-ignore property.dynamicName */
+            $property = (fn($n) => $this->$n)($name);
+            if ($property instanceof Detector) {
+                $detector = $property;
+            }
+        }
+
+        if ($detector === null) {
             throw new DomainException(sprintf('Invalid key "%s". No detector found for this value', $name));
         }
 
         return $detector->get();
     }
 
+    /**
+     * @return array<string, TDetector>
+     */
     public function createCustomDetectors(): array
     {
         return [];
     }
 
+    /**
+     * @phpstan-param Detector<$this> $detector
+     */
     public function addDetector(string $name, Detector $detector): void
     {
         $this->customDetectors[$name] = $detector;
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     */
     public function setSettings(array $settings): void
     {
         $this->settings = $settings;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getSettings(): array
     {
         return $this->settings;
     }
 
+    /**
+     * @return mixed
+     */
     public function getSetting(string $key)
     {
         return $this->settings[$key] ?? null;
@@ -190,6 +239,15 @@ class Extractor
         return $this->response;
     }
 
+    /**
+     * Rewrites a URL before it is requested. Adapters can override it,
+     * for example to move a route stored in the fragment to the path.
+     */
+    public static function normalizeUri(UriInterface $uri): UriInterface
+    {
+        return $uri;
+    }
+
     public function getUri(): UriInterface
     {
         return $this->uri;
@@ -206,10 +264,6 @@ class Extractor
             }
 
             $uri = $this->crawler->createUri($uri);
-        }
-
-        if (!($uri instanceof UriInterface)) {
-            throw new InvalidArgumentException('Uri must be a string or an instance of UriInterface');
         }
 
         return resolveUri($this->uri, $uri);

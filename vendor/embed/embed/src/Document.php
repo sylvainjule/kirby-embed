@@ -29,36 +29,58 @@ class Document
         $encoding = null;
         $contentType = $extractor->getResponse()->getHeaderLine('content-type');
         preg_match('/charset=(?:"|\')?(.*?)(?=$|\s|;|"|\'|>)/i', $contentType, $match);
-        if (!empty($match[1])) {
+        if (isset($match[1]) && $match[1] !== '' && $match[1] !== '0') {
             $encoding = trim($match[1], ',');
-            try {
-                $ret = mb_encoding_aliases($encoding ?? '');
-                if ($ret === false) {
-                    $encoding = null;
-                }
-            } catch (\ValueError $exception) {
-                $encoding = null;
-            }
+            $encoding = $this->getValidEncoding($encoding);
         }
-        if (is_null($encoding) && !empty($html)) {
+        if (is_null($encoding) && $html !== '') {
             preg_match('/charset=(?:"|\')?(.*?)(?=$|\s|;|"|\'|>)/i', $html, $match);
-            if (!empty($match[1])) {
+            if (isset($match[1]) && $match[1] !== '' && $match[1] !== '0') {
                 $encoding = trim($match[1], ',');
-            }
-            try {
-                $ret = mb_encoding_aliases($encoding ?? '');
-                if ($ret === false) {
-                    $encoding = null;
-                }
-            } catch (\ValueError $exception) {
-                $encoding = null;
+                $encoding = $this->getValidEncoding($encoding);
             }
         }
-        $this->document = !empty($html) ? Parser::parse($html, $encoding) : new DOMDocument();
+        $this->document = $html !== '' ? Parser::parse($html, $encoding) : new DOMDocument();
         $this->initXPath();
     }
 
-    private function initXPath()
+    /**
+     * Get valid encoding name if it exists, otherwise return null
+     *
+     * Uses mb_encoding_aliases() to verify the encoding is valid.
+     *
+     * TODO: When dropping PHP 7.4 support, remove the PHP_VERSION_ID < 80000 branch.
+     * PHP version differences:
+     * - PHP 7.4: mb_encoding_aliases() returns false for invalid encoding and throws Warning for empty string
+     * - PHP 8.0+: mb_encoding_aliases() throws ValueError for invalid/empty encoding
+     *
+     * @see https://www.php.net/manual/en/function.mb-encoding-aliases.php
+     */
+    private function getValidEncoding(?string $encoding): ?string
+    {
+        if (PHP_VERSION_ID < 80000) {
+            // PHP 7.4: Check return value (false = invalid encoding)
+            // Need to check null/empty first to avoid Warning
+            // TODO: Remove this entire branch when PHP 7.4 support is dropped
+            if ($encoding === null || $encoding === '') {
+                return null;
+            }
+            $ret = @mb_encoding_aliases($encoding);
+            /** @phpstan-ignore function.alreadyNarrowedType (PHP 7.4 returns false for invalid encoding, PHP 8.0+ returns array) */
+            return is_array($ret) ? $encoding : null;
+        } else {
+            // PHP 8.0+: ValueError exception is thrown for invalid/empty encoding
+            try {
+                $aliases = mb_encoding_aliases($encoding ?? '');
+                // If mb_encoding_aliases succeeds, return the input value as is. Some encodings do not have aliases.
+                return $encoding;
+            } catch (\ValueError $exception) {
+                return null;
+            }
+        }
+    }
+
+    private function initXPath(): void
     {
         $this->xpath = new DOMXPath($this->document);
         $this->xpath->registerNamespace('php', 'http://php.net/xpath');
@@ -73,10 +95,16 @@ class Document
 
     public function remove(string $query): void
     {
-        $nodes = iterator_to_array($this->xpath->query($query), false);
+        $result = $this->xpath->query($query);
+        if ($result === false) {
+            return;
+        }
+        $nodes = iterator_to_array($result, false);
 
         foreach ($nodes as $node) {
-            $node->parentNode->removeChild($node);
+            if ($node->parentNode !== null) {
+                $node->parentNode->removeChild($node); // @phpstan-ignore argument.type
+            }
         }
     }
 
@@ -92,6 +120,8 @@ class Document
 
     /**
      * Helper to build xpath queries easily and case insensitive
+     *
+     * @param array<string, string> $attributes
      */
     private static function buildQuery(string $startQuery, array $attributes): string
     {
@@ -106,14 +136,20 @@ class Document
 
     /**
      * Select a element in the dom
+     *
+     * @param array<string, string>|null $attributes
      */
     public function select(string $query, ?array $attributes = null, ?DOMNode $context = null): QueryResult
     {
-        if (!empty($attributes)) {
+        if ($attributes !== null && $attributes !== []) {
             $query = self::buildQuery($query, $attributes);
         }
 
-        return new QueryResult($this->xpath->query($query, $context), $this->extractor);
+        $result = $this->xpath->query($query, $context);
+        if ($result === false) {
+            $result = new \DOMNodeList();
+        }
+        return new QueryResult($result, $this->extractor); // @phpstan-ignore argument.type
     }
 
     /**
@@ -126,6 +162,8 @@ class Document
 
     /**
      * Shortcut to select a <link> element and return the href
+     *
+     * @param array<string, string> $extra
      */
     public function link(string $rel, array $extra = []): ?UriInterface
     {
@@ -147,6 +185,6 @@ class Document
             self::$cssConverter = new CssSelectorConverter();
         }
 
-        return self::$cssConverter->toXpath($selector);
+        return self::$cssConverter->toXPath($selector);
     }
 }

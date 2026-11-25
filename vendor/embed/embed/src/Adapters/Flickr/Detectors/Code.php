@@ -9,12 +9,19 @@ use Embed\EmbedCode;
 use function Embed\html;
 use function Embed\matchPath;
 
+/**
+ * @extends Detector<\Embed\Adapters\Flickr\Extractor>
+ */
 class Code extends Detector
 {
     public function detect(): ?EmbedCode
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $result = parent::detect();
+        if ($result !== null) {
+            return $result;
+        }
+
+        return $this->fallback();
     }
 
     private function fallback(): ?EmbedCode

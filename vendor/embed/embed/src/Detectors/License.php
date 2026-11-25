@@ -3,6 +3,10 @@ declare(strict_types = 1);
 
 namespace Embed\Detectors;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class License extends Detector
 {
     public function detect(): ?string
@@ -10,7 +14,7 @@ class License extends Detector
         $oembed = $this->extractor->getOEmbed();
         $metas = $this->extractor->getMetas();
 
-        return $oembed->str('license_url')
-            ?: $metas->str('copyright');
+        $license = $oembed->str('license_url');
+        return $license !== null ? $license : $metas->str('copyright');
     }
 }

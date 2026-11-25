@@ -5,6 +5,9 @@ namespace Embed\Adapters\Twitter\Detectors;
 
 use Embed\Detectors\ProviderName as Detector;
 
+/**
+ * @extends Detector<\Embed\Adapters\Twitter\Extractor>
+ */
 class ProviderName extends Detector
 {
     public function detect(): string

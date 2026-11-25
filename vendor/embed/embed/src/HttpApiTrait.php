@@ -10,21 +10,33 @@ trait HttpApiTrait
 {
     use ApiTrait;
 
-    private ?UriInterface $endpoint;
+    private ?UriInterface $endpoint = null;
 
     public function getEndpoint(): ?UriInterface
     {
         return $this->endpoint;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function fetchJSON(UriInterface $uri): array
     {
         $crawler = $this->extractor->getCrawler();
         $request = $crawler->createRequest('GET', $uri);
-        $response = $crawler->sendRequest($request);
+        try {
+            $response = $crawler->sendRequest($request);
+        } catch (\Embed\Http\BlockedRequestException $exception) {
+            return [];
+        }
 
         try {
-            return json_decode((string) $response->getBody(), true) ?: [];
+            $data = json_decode((string) $response->getBody(), true);
+            if (is_array($data)) {
+                /** @var array<string, mixed> */
+                return $data;
+            }
+            return [];
         } catch (Exception $exception) {
             return [];
         }

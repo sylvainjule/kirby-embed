@@ -5,6 +5,9 @@ namespace Embed\Adapters\Facebook\Detectors;
 
 use Embed\Detectors\Title as Detector;
 
+/**
+ * @extends Detector<\Embed\Adapters\Facebook\Extractor>
+ */
 class Title extends Detector
 {
     /**
@@ -15,7 +18,7 @@ class Title extends Detector
         $document = $this->extractor->getDocument();
         $oembed = $this->extractor->getOEmbed();
 
-        return $oembed->str('title')
-            ?: $document->select('.//head/title')->str();
+        $result = $oembed->str('title');
+        return $result !== null ? $result : $document->select('.//head/title')->str();
     }
 }

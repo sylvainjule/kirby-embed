@@ -3,6 +3,10 @@ declare(strict_types = 1);
 
 namespace Embed\Detectors;
 
+/**
+ * @template TExtractor of \Embed\Extractor
+ * @template-extends Detector<TExtractor>
+ */
 class AuthorName extends Detector
 {
     public function detect(): ?string
@@ -10,15 +14,19 @@ class AuthorName extends Detector
         $oembed = $this->extractor->getOEmbed();
         $metas = $this->extractor->getMetas();
 
-        return $oembed->str('author_name')
-            ?: $metas->str(
-                'article:author',
-                'book:author',
-                'sailthru.author',
-                'lp.article:author',
-                'twitter:creator',
-                'dcterms.creator',
-                'author'
-            );
+        $result = $oembed->str('author_name');
+        if (is_string($result) && trim($result) !== '') {
+            return $result;
+        }
+
+        return $metas->str(
+            'article:author',
+            'book:author',
+            'sailthru.author',
+            'lp.article:author',
+            'twitter:creator',
+            'dcterms.creator',
+            'author'
+        );
     }
 }

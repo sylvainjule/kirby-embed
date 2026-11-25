@@ -7,20 +7,23 @@ use Embed\Detectors\Code as Detector;
 use Embed\EmbedCode;
 use function Embed\html;
 
+/**
+ * @extends Detector<\Embed\Adapters\Ideone\Extractor>
+ */
 class Code extends Detector
 {
     public function detect(): ?EmbedCode
     {
-        return parent::detect()
-            ?: $this->fallback();
+        $result = parent::detect();
+        return $result !== null ? $result : $this->fallback();
     }
 
     private function fallback(): ?EmbedCode
     {
         $uri = $this->extractor->getUri();
-        $id = explode('/', $uri->getPath())[1];
+        $id = explode('/', $uri->getPath())[1] ?? '';
 
-        if (empty($id)) {
+        if ($id === '' || $id === '0') {
             return null;
         }
 

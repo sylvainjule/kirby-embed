@@ -1,0 +1,4 @@
+.github export-ignore
+docker export-ignore
+Test export-ignore
+phpunit.xml.dist
